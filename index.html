@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>code4trees — Dein Code pflanzt Bäume</title>
+<meta name="description" content="Für jedes eingereichte Code-Projekt pflanzen wir einen Baum. Zip hochladen, Wald wachsen lassen.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pine-950:#0B1510;
+  --pine-900:#0E1A12;
+  --pine-800:#14251A;
+  --pine-700:#1C3324;
+  --moss:#7FB069;
+  --leaf:#A7C957;
+  --sun:#E8C547;
+  --bark:#8A6F4D;
+  --paper:#EAF0E4;
+  --paper-dim:#B8C6B0;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --display:'Bricolage Grotesque',var(--sans);
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--pine-900);
+  color:var(--paper);
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--leaf);color:var(--pine-950)}
+a{color:var(--leaf)}
+a:focus-visible,button:focus-visible,input:focus-visible,label:focus-visible{
+  outline:2px solid var(--sun);outline-offset:3px;border-radius:4px;
+}
+
+/* ---------- Header ---------- */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:1080px;margin:0 auto;padding:22px 24px;
+}
+.logo{
+  font-family:var(--mono);font-size:1.05rem;font-weight:500;
+  color:var(--paper);text-decoration:none;display:flex;align-items:center;gap:10px;
+}
+.logo .glyph{color:var(--moss)}
+nav a{
+  font-family:var(--mono);font-size:.85rem;color:var(--paper-dim);
+  text-decoration:none;margin-left:22px;
+}
+nav a:hover{color:var(--leaf)}
+
+/* ---------- Hero ---------- */
+.hero{
+  max-width:1080px;margin:0 auto;padding:56px 24px 72px;
+  display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;
+}
+.eyebrow{
+  font-family:var(--mono);font-size:.8rem;letter-spacing:.08em;
+  color:var(--moss);text-transform:lowercase;margin-bottom:18px;
+}
+h1{
+  font-family:var(--display);font-weight:800;
+  font-size:clamp(2.4rem,5.2vw,4rem);line-height:1.05;
+  letter-spacing:-.01em;margin-bottom:22px;
+}
+h1 em{font-style:normal;color:var(--leaf)}
+.hero p.lead{color:var(--paper-dim);max-width:46ch;margin-bottom:32px}
+.cta-row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.btn{
+  display:inline-block;font-family:var(--mono);font-size:.95rem;font-weight:500;
+  padding:14px 26px;border-radius:var(--radius);border:none;cursor:pointer;
+  text-decoration:none;transition:transform .15s ease,background .15s ease;
+}
+.btn-primary{background:var(--leaf);color:var(--pine-950)}
+.btn-primary:hover{background:var(--sun);transform:translateY(-2px)}
+.btn-ghost{background:transparent;color:var(--paper-dim);border:1px solid var(--pine-700)}
+.btn-ghost:hover{color:var(--paper);border-color:var(--moss)}
+
+/* ---------- Planting log (signature) ---------- */
+.log{
+  background:var(--pine-950);border:1px solid var(--pine-700);
+  border-radius:var(--radius);overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.35);
+}
+.log-bar{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 14px;border-bottom:1px solid var(--pine-700);
+}
+.log-bar span{width:10px;height:10px;border-radius:50%;background:var(--pine-700)}
+.log-bar span:first-child{background:var(--bark)}
+.log-bar em{
+  font-family:var(--mono);font-style:normal;font-size:.75rem;
+  color:var(--paper-dim);margin-left:6px;
+}
+.log-body{font-family:var(--mono);font-size:.82rem;padding:18px 16px;line-height:1.9}
+.log-body .line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.log-body .hash{color:var(--bark)}
+.log-body .tree{color:var(--moss)}
+.log-body .msg{color:var(--paper)}
+.log-body .time{color:var(--paper-dim)}
+.log-body .cursor{color:var(--leaf);animation:blink 1.1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ---------- Counter strip ---------- */
+.counter{
+  border-top:1px solid var(--pine-700);border-bottom:1px solid var(--pine-700);
+  background:var(--pine-800);
+}
+.counter-inner{
+  max-width:1080px;margin:0 auto;padding:26px 24px;
+  display:flex;align-items:center;gap:28px;flex-wrap:wrap;
+}
+.counter .num{
+  font-family:var(--display);font-weight:800;font-size:2.2rem;color:var(--sun);
+}
+.counter .label{font-family:var(--mono);font-size:.8rem;color:var(--paper-dim)}
+.forest{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:200px;justify-content:flex-end}
+.forest svg{opacity:.9}
+
+/* ---------- Sections ---------- */
+section{max-width:1080px;margin:0 auto;padding:80px 24px}
+h2{
+  font-family:var(--display);font-weight:600;font-size:1.9rem;
+  letter-spacing:-.01em;margin-bottom:14px;
+}
+.section-intro{color:var(--paper-dim);max-width:56ch;margin-bottom:44px}
+
+/* ---------- Steps ---------- */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.step{
+  background:var(--pine-800);border:1px solid var(--pine-700);
+  border-radius:var(--radius);padding:26px;
+}
+.step .tag{
+  font-family:var(--mono);font-size:.75rem;color:var(--moss);
+  display:block;margin-bottom:14px;
+}
+.step h3{font-family:var(--display);font-weight:600;font-size:1.15rem;margin-bottom:8px}
+.step p{color:var(--paper-dim);font-size:.95rem}
+
+/* ---------- Upload form ---------- */
+#einreichen{scroll-margin-top:40px}
+.form-card{
+  background:var(--pine-800);border:1px solid var(--pine-700);
+  border-radius:calc(var(--radius) + 4px);padding:38px;max-width:640px;
+}
+.field{margin-bottom:22px}
+.field label{
+  display:block;font-family:var(--mono);font-size:.8rem;
+  color:var(--paper-dim);margin-bottom:8px;
+}
+.field input[type=text],.field input[type=email]{
+  width:100%;padding:13px 15px;font-family:var(--sans);font-size:1rem;
+  background:var(--pine-950);color:var(--paper);
+  border:1px solid var(--pine-700);border-radius:var(--radius);
+}
+.field input:focus{border-color:var(--moss);outline:none}
+
+.dropzone{
+  border:2px dashed var(--pine-700);border-radius:var(--radius);
+  padding:38px 24px;text-align:center;cursor:pointer;
+  transition:border-color .15s ease,background .15s ease;
+  background:var(--pine-950);
+}
+.dropzone:hover,.dropzone.dragover{border-color:var(--leaf);background:var(--pine-900)}
+.dropzone .sprout{font-size:1.8rem;display:block;margin-bottom:10px}
+.dropzone strong{display:block;font-weight:600;margin-bottom:4px}
+.dropzone small{color:var(--paper-dim);font-family:var(--mono);font-size:.75rem}
+.dropzone input{display:none}
+.file-chosen{
+  margin-top:14px;font-family:var(--mono);font-size:.8rem;color:var(--leaf);
+  word-break:break-all;display:none;
+}
+.submit-row{margin-top:28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.hint{font-family:var(--mono);font-size:.72rem;color:var(--paper-dim)}
+.success{
+  display:none;margin-top:20px;padding:16px 18px;border-radius:var(--radius);
+  background:var(--pine-950);border:1px solid var(--moss);
+  font-family:var(--mono);font-size:.85rem;color:var(--leaf);
+}
+
+/* ---------- Footer ---------- */
+footer{
+  border-top:1px solid var(--pine-700);margin-top:40px;
+}
+.footer-inner{
+  max-width:1080px;margin:0 auto;padding:32px 24px;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:.78rem;color:var(--paper-dim);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:40px;padding-top:32px}
+  .steps{grid-template-columns:1fr}
+  .forest{justify-content:flex-start}
+  .form-card{padding:26px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="#"><span class="glyph">&#123;&#125;</span> code4trees<span class="glyph">.org</span></a>
+  <nav>
+    <a href="#ablauf">Ablauf</a>
+    <a href="#einreichen">Einreichen</a>
+  </nav>
+</header>
+
+<main>
+  <div class="hero">
+    <div>
+      <p class="eyebrow">// ein projekt = ein baum</p>
+      <h1>Dein Code<br>pflanzt <em>Bäume</em>.</h1>
+      <p class="lead">Reiche ein abgeschlossenes Code-Projekt als Zip ein — und wir pflanzen dafür einen echten Baum. Egal ob Uni-Abgabe, Side-Project oder Hackathon-Prototyp: jeder Commit zählt fürs Klima.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#einreichen">Projekt einreichen</a>
+        <a class="btn btn-ghost" href="#ablauf">Wie funktioniert das?</a>
+      </div>
+    </div>
+
+    <div class="log" aria-label="Pflanz-Log: zuletzt gepflanzte Bäume">
+      <div class="log-bar"><span></span><span></span><span></span><em>pflanz-log — main</em></div>
+      <div class="log-body" id="plantLog">
+        <div class="line"><span class="hash">a3f9c21</span> <span class="tree">🌱</span> <span class="msg">plant: Baum #1.284</span> <span class="time">· vor 2 h</span></div>
+        <div class="line"><span class="hash">7be04d8</span> <span class="tree">🌱</span> <span class="msg">plant: Baum #1.283</span> <span class="time">· vor 5 h</span></div>
+        <div class="line"><span class="hash">c91e57a</span> <span class="tree">🌱</span> <span class="msg">plant: Baum #1.282</span> <span class="time">· gestern</span></div>
+        <div class="line"><span class="hash">02dd6f4</span> <span class="tree">🌱</span> <span class="msg">plant: Baum #1.281</span> <span class="time">· gestern</span></div>
+        <div class="line"><span class="hash">f4a10bc</span> <span class="tree">🌱</span> <span class="msg">plant: Baum #1.280</span> <span class="time">· vor 3 Tagen</span></div>
+        <div class="line"><span class="cursor">▊</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="counter">
+    <div class="counter-inner">
+      <div>
+        <div class="num" id="treeCount">1.284</div>
+        <div class="label">Bäume gepflanzt</div>
+      </div>
+      <div class="forest" id="forest" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <section id="ablauf">
+    <h2>Vom Zip zum Setzling</h2>
+    <p class="section-intro">Drei Schritte, keine Haken. Dein Code bleibt deiner — wir prüfen nur, dass es sich um ein echtes Projekt handelt.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="tag">git add .</span>
+        <h3>Projekt packen</h3>
+        <p>Zippe dein abgeschlossenes Projekt — Quellcode plus kurze README, damit wir sehen, worum es geht.</p>
+      </div>
+      <div class="step">
+        <span class="tag">git commit</span>
+        <h3>Hochladen</h3>
+        <p>Lade das Zip über das Formular hoch. Wir schauen kurz drüber, dass es ein echtes Projekt ist — mehr nicht.</p>
+      </div>
+      <div class="step">
+        <span class="tag">git push --tree</span>
+        <h3>Baum wird gepflanzt</h3>
+        <p>Für jede angenommene Einreichung pflanzen wir mit unseren Partnern einen Baum und tragen ihn ins Pflanz-Log ein.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="einreichen">
+    <h2>Projekt einreichen</h2>
+    <p class="section-intro">Lade dein Projekt als .zip hoch (max. 50 MB). Nach der Prüfung bekommst du eine Bestätigung mit deiner Baum-Nummer.</p>
+
+    <form class="form-card" id="submitForm" novalidate>
+      <div class="field">
+        <label for="name">Dein Name</label>
+        <input type="text" id="name" name="name" required autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="email">E-Mail (für die Baum-Bestätigung)</label>
+        <input type="email" id="email" name="email" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label for="project">Projektname</label>
+        <input type="text" id="project" name="project" required>
+      </div>
+
+      <div class="field">
+        <label id="ziplabel">Dein Code als .zip</label>
+        <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-labelledby="ziplabel">
+          <span class="sprout" aria-hidden="true">🌱</span>
+          <strong>Zip hierher ziehen oder klicken</strong>
+          <small>.zip · max. 50 MB</small>
+          <input type="file" id="zipfile" name="zipfile" accept=".zip,application/zip">
+          <div class="file-chosen" id="fileChosen"></div>
+        </div>
+      </div>
+
+      <div class="submit-row">
+        <button class="btn btn-primary" type="submit">Einreichen &amp; Baum pflanzen</button>
+        <span class="hint">// kein Account nötig</span>
+      </div>
+
+      <div class="success" id="successMsg">
+        ✓ Einreichung erhalten. Dein Baum ist unterwegs — Bestätigung folgt per E-Mail.
+      </div>
+    </form>
+  </section>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span>© 2026 code4trees.org — für jeden Code ein Baum</span>
+    <span>kontakt@code4trees.org</span>
+  </div>
+</footer>
+
+<script>
+// Kleiner SVG-Wald im Counter-Streifen
+(function(){
+  const forest = document.getElementById('forest');
+  const treeSVG = h => `<svg width="16" height="${18+h}" viewBox="0 0 16 ${18+h}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="7" y="${10+h}" width="2" height="8" fill="#8A6F4D"/>
+    <polygon points="8,0 14,${10+h} 2,${10+h}" fill="${h % 2 ? '#7FB069' : '#A7C957'}"/>
+  </svg>`;
+  let html = '';
+  for(let i = 0; i < 24; i++){ html += treeSVG(i % 5 * 2); }
+  forest.innerHTML = html;
+})();
+
+// Dropzone
+(function(){
+  const dz = document.getElementById('dropzone');
+  const input = document.getElementById('zipfile');
+  const chosen = document.getElementById('fileChosen');
+
+  function showFile(file){
+    if(!file) return;
+    if(!file.name.toLowerCase().endsWith('.zip')){
+      chosen.style.display = 'block';
+      chosen.style.color = 'var(--sun)';
+      chosen.textContent = '! Bitte eine .zip-Datei auswählen';
+      input.value = '';
+      return;
+    }
+    if(file.size > 50 * 1024 * 1024){
+      chosen.style.display = 'block';
+      chosen.style.color = 'var(--sun)';
+      chosen.textContent = '! Datei größer als 50 MB';
+      input.value = '';
+      return;
+    }
+    chosen.style.display = 'block';
+    chosen.style.color = 'var(--leaf)';
+    chosen.textContent = '✓ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
+  }
+
+  dz.addEventListener('click', () => input.click());
+  dz.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', () => showFile(input.files[0]));
+
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', e => {
+    if(e.dataTransfer.files.length){
+      input.files = e.dataTransfer.files;
+      showFile(input.files[0]);
+    }
+  });
+})();
+
+// Formular-Submit
+// TODO: Backend anbinden — z.B. per fetch() an einen eigenen Upload-Endpoint
+// (FormData mit name, email, project, zipfile). Aktuell nur clientseitige Bestätigung.
+(function(){
+  const form = document.getElementById('submitForm');
+  const success = document.getElementById('successMsg');
+  const count = document.getElementById('treeCount');
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('name');
+    const email = document.getElementById('email');
+    const project = document.getElementById('project');
+    const zip = document.getElementById('zipfile');
+
+    if(!form.checkValidity()){ form.reportValidity(); return; }
+    if(!zip.files.length){
+      const chosen = document.getElementById('fileChosen');
+      chosen.style.display = 'block';
+      chosen.style.color = 'var(--sun)';
+      chosen.textContent = '! Bitte zuerst ein Zip hochladen';
+      return;
+    }
+
+    // Hier später: fetch('/api/submit', { method:'POST', body: new FormData(form) })
+    success.style.display = 'block';
+    // Zähler optimistisch hochzählen
+    const current = parseInt(count.textContent.replace(/\./g, ''), 10);
+    count.textContent = (current + 1).toLocaleString('de-AT');
+    form.querySelector('button[type=submit]').disabled = true;
+  });
+})();
+</script>
+
+</body>
+</html>
