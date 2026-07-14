@@ -1,33 +1,55 @@
 <?php
-// Sage dem Browser, dass hier saubere API-Daten (JSON) kommen
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-// Hier wird die Zahl heimlich gespeichert
 $file = 'tree_count.txt';
+$count = 0; 
 
-// Falls die Datei noch nicht existiert, starten wir bei deiner Wunschzahl
+// Create file with 0 if it doesn't exist
 if (!file_exists($file)) {
-    file_put_contents($file, '1403');
+    file_put_contents($file, '0');
 }
 
-// Aktuellen Stand auslesen
-$currentCount = (int)file_get_contents($file);
+// Read mode: just fetch the number (prevents the loop)
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && !isset($_GET['add'])) {
+    $count = (int)file_get_contents($file);
+    echo json_encode(['trees' => $count]);
+    exit;
+}
 
-// Wenn jemand etwas einreicht, rufen wir api.php?add=1 auf
-if (isset($_GET['add'])) {
-    $currentCount += (int)$_GET['add'];
-} else {
-    // "Ghost-Wachstum": Bei normalen Seitenaufrufen wächst die Zahl manchmal zufällig, 
-    // um globale Aktivität anderer Studenten zu simulieren. (Niemand sieht das im Frontend!)
-    if (rand(1, 100) <= 30) {
-        $currentCount += rand(1, 2);
+// Write mode: securely update the number
+$fp = fopen($file, 'c+');
+
+// Lock the file to prevent overwrite glitches
+if ($fp && flock($fp, LOCK_EX)) {
+    $count = (int)stream_get_contents($fp);
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        sleep(2); // Simulate AI check
+        $count += 1; 
+    } elseif (isset($_GET['add'])) {
+        $count += (int)$_GET['add'];
     }
+
+    // Save the new count
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, (string)$count);
+    fflush($fp);
+    
+    // Release the lock
+    flock($fp, LOCK_UN);
+    fclose($fp);
+
+    echo json_encode([
+        "status" => "success", 
+        "message" => "Project validated! Tree planted.",
+        "trees" => $count,
+        "newCount" => $count
+    ]);
+    exit;
 }
 
-// Neuen Stand speichern
-file_put_contents($file, (string)$currentCount);
-
-// Die Zahl als sauberes JSON ans Frontend schicken
-echo json_encode(['trees' => $currentCount]);
+// Fallback error
+echo json_encode(["status" => "error", "message" => "Server busy."]);
 ?>
