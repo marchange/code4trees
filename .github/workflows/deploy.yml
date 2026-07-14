@@ -3,7 +3,7 @@ name: 🚀 Deploy to IONOS Webspace
 on:
   push:
     branches:
-      - main # Or 'master' depending on your default branch name
+      - main
 
 jobs:
   web-deploy:
@@ -13,19 +13,12 @@ jobs:
     - name: 🚚 Get latest code
       uses: actions/checkout@v4
     
-    # Optional: If you have a frontend build step (e.g., React/Next.js/Vite)
-    # Un-comment the lines below if you need to build the project first:
-    # - name: 🔧 Install Node.js & Build Project
-    #   run: |
-    #     npm install
-    #     npm run build
-
-    - name: 📂 Sync files to IONOS
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - name: 📂 Sync files via SFTP
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.6
       with:
         server: ${{ secrets.SFTP_SERVER }}
         username: ${{ secrets.SFTP_USERNAME }}
         password: ${{ secrets.SFTP_PASSWORD }}
         port: 22
-        local-dir: ./public/
-        server-dir: /public/
+        local_path: './public/*'
+        remote_path: '/public'
