@@ -27,4 +27,4 @@ jobs:
         username: ${{ secrets.SFTP_USERNAME }}
         password: ${{ secrets.SFTP_PASSWORD }}
         port: 22
-        # server-dir: / # Change this to the specific subdirectory if your domain points to a subfolder
+        server-dir: /public/
