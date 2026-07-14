@@ -22,3 +22,4 @@ jobs:
         port: 22
         local_path: './public/*'
         remote_path: '/public'
+        sftp_only: true
