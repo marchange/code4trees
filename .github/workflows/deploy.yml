@@ -3,7 +3,7 @@ name: 🚀 Deploy to IONOS Webspace
 on:
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   web-deploy:
@@ -23,6 +23,6 @@ jobs:
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
         localDir: './public'
-        remoteDir: '/public'
+        remoteDir: '/dev'
         reverse: true
         options: '--delete'
