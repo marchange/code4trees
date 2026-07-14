@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-$file = 'tree_count.txt';
+$file = '../tree_count.txt';
 $count = 0; 
 
 // Create file with 0 if it doesn't exist
