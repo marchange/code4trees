@@ -82,17 +82,14 @@ setInterval(fetchLiveTreeCount, FETCH_INTERVAL_MS);
 // --- RANDOM BACKGROUND INCREMENTS ---
 setInterval(async () => {
     // 20% chance to skip adding, makes it feel more organic and random
-    if (Math.random() > 0.2) return; 
+    if (Math.random() < 0.2) return; 
 
     // Add between 1 and 100 trees randomly
     const randomTrees = Math.floor(Math.random() * 100) + 1; 
 
     try {
-        await fetch('api.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ add: randomTrees })
-        });
+        // Fixed: Use a GET request so api.php processes the $_GET['add'] parameter
+        await fetch(`api.php?add=${randomTrees}`);
     } catch (e) {
         console.error("Random add failed", e);
     }
