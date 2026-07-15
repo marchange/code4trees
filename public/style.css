@@ -846,6 +846,16 @@ h2 {
 }
 
 /* ---------- Responsive ---------- */
+@media (min-width: 901px) {
+  .dropzone {
+    padding: 120px 60px;
+  }
+  
+  .field label {
+    text-align: center;
+  }
+}
+
 @media (max-width: 900px) {
   .hero { 
     grid-template-columns: 1fr; 
