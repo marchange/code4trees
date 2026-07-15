@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- ODOMETER ANIMATION FUNCTION ---
   function animateValue(obj, start, end) {
+    if (!obj) return;
+    
     // If a previous roll-up animation is still running, stop it
     if (activeAnimationFrame) {
       window.cancelAnimationFrame(activeAnimationFrame);
@@ -68,9 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
       } 
       // If the number grew, animate it
       else if (newCount > currentDisplayedCount) {
-          animateValue(treeCountEl, liveDisplayedValue, newCount);
-          currentDisplayedCount = newCount;
-        }
+        animateValue(treeCountEl, liveDisplayedValue, newCount);
+        currentDisplayedCount = newCount;
+      }
     } catch (error) {
       console.error("API error", error);
     }
@@ -84,7 +86,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- RANDOM BACKGROUND INCREMENTS ---
   setInterval(async () => {
       // 20% chance to skip adding, makes it feel more organic and random
-      // Fixed: Properly skips only 20% of the time
       if (Math.random() < 0.2) return; 
 
       // Add between 1 and 7 trees randomly
@@ -172,23 +173,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const dz = document.getElementById('dropzone');
   const fileInput = document.getElementById('zipfile');
   const chosen = document.getElementById('fileChosen');
-  const sproutIcon = dz.querySelector('.sprout');
-  if (!dz || !fileInput || !chosen) {
-    console.error("Dropzone fehlt.");
-    return;
-  }
-  
-  dz.addEventListener('click', (e) => {
-    if (e.target !== fileInput) {
-      fileInput.click();
-    }
-  });
+  const sproutIcon = dz ? dz.querySelector('.sprout') : null;
 
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length > 0) {
-      showFile(e.target.files[0]);
-    }
-  });
+  if (!dz || !fileInput || !chosen) {
+    console.error("Dropzone-Elemente im DOM nicht gefunden.");
+  } else {
+    dz.addEventListener('click', (e) => {
+      if (e.target !== fileInput) {
+        fileInput.click();
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        showFile(e.target.files[0]);
+      }
+    });
+  }
 
   function showFile(file){
     if(!file) return;
@@ -251,7 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Wenn alles passt: Erfolgreich anzeigen!
         chosen.style.color = 'var(--leaf)';
         chosen.textContent = '✓ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB) — Bereit zum Pflanzen!';
-        sproutIcon.textContent = '📦';
+        if (sproutIcon) sproutIcon.textContent = '📦';
         dz.style.borderColor = 'var(--leaf)';
 
       }).catch(err => {
@@ -264,14 +265,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     reader.readAsArrayBuffer(file);
   }
-  });
 
   // --- 5. Gamifizierter Submit & Backend Call ---
   const form = document.getElementById('submitForm');
   const submitBtn = document.getElementById('submitCodeBtn');
   const reviewConsole = document.getElementById('reviewConsole');
-  const successState = document.getElementById('successState');
-  const treeIdValue = document.getElementById('treeIdValue');
+  
+  // Da "successState" und "treeIdValue" mehrfach im HTML vergeben sind, selektieren wir hier alle Vorkommen
+  const successStates = document.querySelectorAll('#successState');
+  const treeIdValues = document.querySelectorAll('#treeIdValue');
   const copyTreeIdBtn = document.getElementById('copyTreeIdBtn');
 
   function fireTreeConfetti() {
@@ -308,17 +310,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         // Visual feedback
-        copyTreeIdBtn.classList.add('copied');
-        const originalText = copyTreeIdBtn.querySelector('.copy-text').textContent;
-        copyTreeIdBtn.querySelector('.copy-text').textContent = 'Kopiert!';
-        copyTreeIdBtn.querySelector('.copy-icon').textContent = '✓';
-        
-        // Reset after 2 seconds
-        setTimeout(() => {
-          copyTreeIdBtn.classList.remove('copied');
-          copyTreeIdBtn.querySelector('.copy-text').textContent = originalText;
-          copyTreeIdBtn.querySelector('.copy-icon').textContent = '📋';
-        }, 2000);
+        if (copyTreeIdBtn) {
+          copyTreeIdBtn.classList.add('copied');
+          const copyTextEl = copyTreeIdBtn.querySelector('.copy-text');
+          const copyIconEl = copyTreeIdBtn.querySelector('.copy-icon');
+          const originalText = copyTextEl ? copyTextEl.textContent : 'Kopieren';
+          
+          if (copyTextEl) copyTextEl.textContent = 'Kopiert!';
+          if (copyIconEl) copyIconEl.textContent = '✓';
+          
+          setTimeout(() => {
+            copyTreeIdBtn.classList.remove('copied');
+            if (copyTextEl) copyTextEl.textContent = originalText;
+            if (copyIconEl) copyIconEl.textContent = '📋';
+          }, 2000);
+        }
       }).catch(() => {
         console.error('Failed to copy to clipboard');
         fallbackCopy(text);
@@ -335,16 +341,21 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.select();
     try {
       document.execCommand('copy');
-      copyTreeIdBtn.classList.add('copied');
-      const originalText = copyTreeIdBtn.querySelector('.copy-text').textContent;
-      copyTreeIdBtn.querySelector('.copy-text').textContent = 'Kopiert!';
-      copyTreeIdBtn.querySelector('.copy-icon').textContent = '✓';
-      
-      setTimeout(() => {
-        copyTreeIdBtn.classList.remove('copied');
-        copyTreeIdBtn.querySelector('.copy-text').textContent = originalText;
-        copyTreeIdBtn.querySelector('.copy-icon').textContent = '📋';
-      }, 2000);
+      if (copyTreeIdBtn) {
+        copyTreeIdBtn.classList.add('copied');
+        const copyTextEl = copyTreeIdBtn.querySelector('.copy-text');
+        const copyIconEl = copyTreeIdBtn.querySelector('.copy-icon');
+        const originalText = copyTextEl ? copyTextEl.textContent : 'Kopieren';
+        
+        if (copyTextEl) copyTextEl.textContent = 'Kopiert!';
+        if (copyIconEl) copyIconEl.textContent = '✓';
+        
+        setTimeout(() => {
+          copyTreeIdBtn.classList.remove('copied');
+          if (copyTextEl) copyTextEl.textContent = originalText;
+          if (copyIconEl) copyIconEl.textContent = '📋';
+        }, 2000);
+      }
     } catch (err) {
       console.error('Fallback copy failed', err);
     }
@@ -354,101 +365,110 @@ document.addEventListener("DOMContentLoaded", () => {
   // Copy button event listener
   if (copyTreeIdBtn) {
     copyTreeIdBtn.addEventListener('click', () => {
-      const treeId = treeIdValue.textContent;
+      // Nehme den Wert aus dem ersten TreeID Feld
+      const firstTreeIdVal = document.querySelector('#treeIdValue');
+      const treeId = firstTreeIdVal ? firstTreeIdVal.textContent : '';
       if (treeId) {
         copyToClipboard(treeId);
       }
     });
   }
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    if(!form.checkValidity()){ 
-      form.reportValidity(); 
-      return; 
-    }
-    if(!fileInput.files.length){
-      chosen.style.display = 'block';
-      chosen.style.color = 'var(--sun)';
-      chosen.style.background = 'rgba(232, 197, 71, 0.1)';
-      chosen.textContent = '⚠️ Bitte ziehe zuerst dein Projekt-Zip in die Box!';
-      return;
-    }
+      if(!form.checkValidity()){ 
+        form.reportValidity(); 
+        return; 
+      }
+      if(!fileInput.files.length){
+        chosen.style.display = 'block';
+        chosen.style.color = 'var(--sun)';
+        chosen.style.background = 'rgba(232, 197, 71, 0.1)';
+        chosen.textContent = '⚠️ Bitte ziehe zuerst dein Projekt-Zip in die Box!';
+        return;
+      }
 
-    const icon = submitBtn.querySelector('.btn-icon');
-    const text = submitBtn.querySelector('.btn-text');
-    
-    // NEU: Deaktiviere den Button sofort, um Mehrfach-Klicks komplett zu sperren
-    submitBtn.disabled = true;
-    submitBtn.classList.add('is-watering');
-    icon.textContent = "💧";
-    text.textContent = "Lade Archiv hoch und prüfe...";
-    
-    reviewConsole.style.display = "block";
-    reviewConsole.innerHTML = `<p class="sys">> Sende Daten an Backend...</p>`;
-    if (successState) {
-      successState.style.display = "none";
-    }
-    const formData = new FormData(form);
-
-    try {
-      const response = await fetch('api.php', {
-        method: 'POST',
-        body: formData
-      });
-
-      const data = await response.json();
-
-      if (data.status === 'success') {
-        reviewConsole.innerHTML += `<br><p class="success-text">> [OK] ${data.message}</p>`;
-        
-        submitBtn.classList.remove('is-watering');
-        submitBtn.classList.add('is-grown');
-        icon.textContent = "🌳";
-        text.textContent = "Baum erfolgreich gepflanzt!";
-        // Button bleibt bei Erfolg dauerhaft deaktiviert, da die Eingaben gesperrt sind
-        
-        fireTreeConfetti();
-
-        // Trigger animation for the manual upload
-        if (data.newCount > currentDisplayedCount) {
-            animateValue(treeCountEl, liveDisplayedValue, data.newCount);
-            currentDisplayedCount = data.newCount;
-        }
-        
-        // Generate and display Tree ID
-        const treeId = generateTreeId();
-        if (treeIdValue) {
-          treeIdValue.textContent = treeId;
-        }
+      const icon = submitBtn.querySelector('.btn-icon');
+      const text = submitBtn.querySelector('.btn-text');
       
-        if (successState) {
-          successState.style.display = "block";
-        }
-        
-        fileInput.disabled = true;
-        document.getElementById('name').disabled = true;
-        document.getElementById('project').disabled = true;
+      // Deaktiviere den Button sofort, um Mehrfach-Klicks komplett zu sperren
+      submitBtn.disabled = true;
+      submitBtn.classList.add('is-watering');
+      if (icon) icon.textContent = "💧";
+      if (text) text.textContent = "Lade Archiv hoch und prüfe...";
+      
+      if (reviewConsole) {
+        reviewConsole.style.display = "block";
+        reviewConsole.innerHTML = `<p class="sys">> Sende Daten an Backend...</p>`;
+      }
 
-      } else {
-        reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] ${data.message}</p>`;
+      successStates.forEach(state => state.style.display = "none");
+      
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('api.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+          if (reviewConsole) {
+            reviewConsole.innerHTML += `<br><p class="success-text">> [OK] ${data.message}</p>`;
+          }
+          
+          submitBtn.classList.remove('is-watering');
+          submitBtn.classList.add('is-grown');
+          if (icon) icon.textContent = "🌳";
+          if (text) text.textContent = "Baum erfolgreich gepflanzt!";
+          
+          fireTreeConfetti();
+
+          // Trigger animation for the manual upload
+          if (data.newCount > currentDisplayedCount) {
+              animateValue(treeCountEl, liveDisplayedValue, data.newCount);
+              currentDisplayedCount = data.newCount;
+          }
+          
+          // Generate and display Tree ID in all elements with that ID
+          const treeId = generateTreeId();
+          treeIdValues.forEach(el => el.textContent = treeId);
+          successStates.forEach(state => state.style.display = "block");
+          
+          // Eingabefelder bei Erfolg sperren
+          fileInput.disabled = true;
+          const nameInput = document.getElementById('name');
+          const projInput = document.getElementById('project');
+          if (nameInput) nameInput.disabled = true;
+          if (projInput) projInput.disabled = true;
+
+        } else {
+          if (reviewConsole) {
+            reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] ${data.message}</p>`;
+          }
+          // BEI FEHLER: Reaktivieren für einen neuen Versuch
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('is-watering');
+          if (icon) icon.textContent = "🌱";
+          if (text) text.textContent = "Erneut versuchen";
+        }
+
+      } catch (err) {
+        if (reviewConsole) {
+          reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] Verbindung zum Server fehlgeschlagen.</p>`;
+        }
         // BEI FEHLER: Reaktivieren für einen neuen Versuch
         submitBtn.disabled = false;
         submitBtn.classList.remove('is-watering');
-        icon.textContent = "🌱";
-        text.textContent = "Erneut versuchen";
+        if (icon) icon.textContent = "🌱";
+        if (text) text.textContent = "Erneut versuchen";
       }
-
-    } catch (err) {
-      reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] Verbindung zum Server fehlgeschlagen.</p>`;
-      // BEI FEHLER: Reaktivieren für einen neuen Versuch
-      submitBtn.disabled = false;
-      submitBtn.classList.remove('is-watering');
-      icon.textContent = "🌱";
-      text.textContent = "Erneut versuchen";
-    }
-  });
+    });
+  }
 
   // Diese Funktionsaufrufe gehören zum DOMContentLoaded Lifecycle und müssen hier ausgeführt werden:
   generateAmbientCode();
