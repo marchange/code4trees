@@ -160,6 +160,13 @@ function renderSvgForest() {
   forest.innerHTML = html;
 }
 
+// --- Generate unique Tree ID ---
+function generateTreeId() {
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2, 8);
+  return `TREE-${timestamp}-${random}`.toUpperCase();
+}
+
 // --- 4. Huge Dropzone Logic (Safe) ---
 const dz = document.getElementById('dropzone');
 const fileInput = document.getElementById('zipfile');
@@ -218,6 +225,9 @@ dz.addEventListener('drop', e => {
 const form = document.getElementById('submitForm');
 const submitBtn = document.getElementById('submitCodeBtn');
 const reviewConsole = document.getElementById('reviewConsole');
+const successState = document.getElementById('successState');
+const treeIdValue = document.getElementById('treeIdValue');
+const copyTreeIdBtn = document.getElementById('copyTreeIdBtn');
 
 function fireTreeConfetti() {
   const duration = 2500;
@@ -239,6 +249,64 @@ function fireTreeConfetti() {
   
   // Explicitly trigger the animation loop
   frame();
+}
+
+// Copy to Clipboard functionality
+function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      // Visual feedback
+      copyTreeIdBtn.classList.add('copied');
+      const originalText = copyTreeIdBtn.querySelector('.copy-text').textContent;
+      copyTreeIdBtn.querySelector('.copy-text').textContent = 'Kopiert!';
+      copyTreeIdBtn.querySelector('.copy-icon').textContent = '✓';
+      
+      // Reset after 2 seconds
+      setTimeout(() => {
+        copyTreeIdBtn.classList.remove('copied');
+        copyTreeIdBtn.querySelector('.copy-text').textContent = originalText;
+        copyTreeIdBtn.querySelector('.copy-icon').textContent = '📋';
+      }, 2000);
+    }).catch(() => {
+      console.error('Failed to copy to clipboard');
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  document.body.appendChild(textarea);
+  textarea.select();
+  try {
+    document.execCommand('copy');
+    copyTreeIdBtn.classList.add('copied');
+    const originalText = copyTreeIdBtn.querySelector('.copy-text').textContent;
+    copyTreeIdBtn.querySelector('.copy-text').textContent = 'Kopiert!';
+    copyTreeIdBtn.querySelector('.copy-icon').textContent = '✓';
+    
+    setTimeout(() => {
+      copyTreeIdBtn.classList.remove('copied');
+      copyTreeIdBtn.querySelector('.copy-text').textContent = originalText;
+      copyTreeIdBtn.querySelector('.copy-icon').textContent = '📋';
+    }, 2000);
+  } catch (err) {
+    console.error('Fallback copy failed', err);
+  }
+  document.body.removeChild(textarea);
+}
+
+// Copy button event listener
+if (copyTreeIdBtn) {
+  copyTreeIdBtn.addEventListener('click', () => {
+    const treeId = treeIdValue.textContent;
+    if (treeId) {
+      copyToClipboard(treeId);
+    }
+  });
 }
 
 form.addEventListener('submit', async (e) => {
@@ -265,6 +333,7 @@ form.addEventListener('submit', async (e) => {
   
   reviewConsole.style.display = "block";
   reviewConsole.innerHTML = `<p class="sys">> Sende Daten an Backend...</p>`;
+  successState.style.display = "none";
 
   const formData = new FormData(form);
 
@@ -291,6 +360,11 @@ form.addEventListener('submit', async (e) => {
           animateValue(treeCountEl, liveDisplayedValue, data.newCount);
           currentDisplayedCount = data.newCount;
       }
+      
+      // Generate and display Tree ID
+      const treeId = generateTreeId();
+      treeIdValue.textContent = treeId;
+      successState.style.display = "block";
       
       fileInput.disabled = true;
       document.getElementById('name').disabled = true;

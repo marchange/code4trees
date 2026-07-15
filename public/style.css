@@ -702,6 +702,110 @@ h2 {
   text-shadow: 0 0 8px rgba(167, 201, 87, 0.3); 
 }
 
+/* ---------- Tree ID Success Card ---------- */
+.success-state {
+  margin-top: 30px;
+  animation: slideUp 0.6s ease forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tree-id-card {
+  background: rgba(20, 37, 26, 0.6);
+  border: 2px solid var(--leaf);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: 0 0 30px rgba(167, 201, 87, 0.2);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.tree-id-label {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--paper-dim);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tree-id-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.tree-id-display code {
+  background: rgba(11, 21, 16, 0.8);
+  border: 1px solid var(--pine-700);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--sun);
+  word-break: break-all;
+  flex: 1;
+  max-width: 250px;
+}
+
+.copy-btn {
+  background: var(--moss);
+  color: var(--pine-950);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
+}
+
+.copy-btn:hover {
+  background: var(--leaf);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(167, 201, 87, 0.4);
+}
+
+.copy-btn.copied {
+  background: var(--sun);
+  animation: pulse 0.6s ease;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.copy-icon {
+  font-size: 1rem;
+}
+
+.share-hint {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+  margin-top: 12px;
+  font-style: italic;
+}
+
 /* ---------- Animations ---------- */
 @keyframes fadeInDown { 
   from { opacity: 0; transform: translateY(-20px); } 
@@ -742,6 +846,16 @@ h2 {
 }
 
 /* ---------- Responsive ---------- */
+@media (min-width: 901px) {
+  .dropzone {
+    padding: 120px 60px;
+  }
+  
+  .field label {
+    text-align: center;
+  }
+}
+
 @media (max-width: 900px) {
   .hero { 
     grid-template-columns: 1fr; 
@@ -774,5 +888,19 @@ h2 {
   }
   .dropzone { 
     padding: 40px 20px; 
+  }
+  
+  .tree-id-display {
+    flex-direction: column;
+  }
+  
+  .tree-id-display code {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .copy-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
