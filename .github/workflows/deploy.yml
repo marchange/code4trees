@@ -16,7 +16,7 @@ jobs:
       with:
         fetch-depth: 0 
     
-    - name: 📂 Mirror files via SFTP (Upload & Delete)
+    - name: 📂 Mirror files via SFTP
       uses: pressidium/lftp-mirror-action@v1
       with:
         host: ${{ secrets.SFTP_SERVER }}
@@ -24,7 +24,7 @@ jobs:
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
         localDir: './public'
-        #Deploy to /public if main branch, otherwise deploy to /dev
         remoteDir: ${{ github.ref_name == 'main' && '/public' || '/dev' }}
         reverse: true
-        options: '--delete --exclude-glob .htaccess --exclude-glob .htpasswd'
+        options: '--delete'
+        ignoreFile: '.lftp_ignore'
