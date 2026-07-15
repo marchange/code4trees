@@ -584,6 +584,7 @@ h2 {
   font-size: 0.85rem;
   color: var(--paper-dim); 
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .field input[type=text], 
@@ -742,6 +743,16 @@ h2 {
 }
 
 /* ---------- Responsive ---------- */
+@media (min-width: 901px) {
+  .dropzone {
+    padding: 120px 60px;
+  }
+  
+  .dropzone-container .field label {
+    text-align: center;
+  }
+}
+
 @media (max-width: 900px) {
   .hero { 
     grid-template-columns: 1fr; 
@@ -765,6 +776,10 @@ h2 {
   }
   h1 { 
     min-height: auto; 
+  }
+  
+  .field label {
+    text-align: left;
   }
 }
 
