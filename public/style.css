@@ -1,3 +1,8 @@
+Hier ist deine komplette, korrigierte **`style.css`**-Datei.
+
+Ich habe das Formular zentriert, die Dropzone auf die volle Breite gebracht, den Klickbereich des unsichtbaren Datei-Uploads repariert und den blockierenden `display: none`-Fehler ganz unten entfernt. Kopiere einfach den gesamten Code und ersetze damit deine bisherige Datei:
+
+```css
 :root {
   --pine-950: #050a07;
   --pine-900: #0B1510;
@@ -500,17 +505,15 @@ h2 {
   font-size: 2.2rem; 
   letter-spacing: -0.02em; 
   margin-bottom: 16px; 
-  text-align: center;         /* <-- Richtet die Überschrift mittig aus */
-}
-
+  text-align: center;       
+  
 .section-intro { 
   color: var(--paper-dim); 
   max-width: 60ch; 
   margin-bottom: 60px; 
   font-size: 1.1rem; 
-  text-align: center;         /* <-- Richtet den Text mittig aus */
-  margin-left: auto;          /* <-- Zentriert den Text-Block auf der Horizontalen */
-  margin-right: auto;         /* <-- Zentriert den Text-Block auf der Horizontalen */
+  text-align: center;     
+  margin-right: auto;         
 }
 
 .steps { 
@@ -895,4 +898,20 @@ h2 {
   .dropzone { 
     padding: 40px 20px; 
   }
+  
+  .tree-id-display {
+    flex-direction: column;
+  }
+  
+  .tree-id-display code {
+    width: 100%;
+    max-width: none;
+  }
+  
+  .copy-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
+
+```
