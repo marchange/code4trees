@@ -327,6 +327,8 @@ form.addEventListener('submit', async (e) => {
   const icon = submitBtn.querySelector('.btn-icon');
   const text = submitBtn.querySelector('.btn-text');
   
+  // NEU: Deaktiviere den Button sofort, um Mehrfach-Klicks komplett zu sperren
+  submitBtn.disabled = true;
   submitBtn.classList.add('is-watering');
   icon.textContent = "💧";
   text.textContent = "Lade Archiv hoch und prüfe...";
@@ -352,6 +354,7 @@ form.addEventListener('submit', async (e) => {
       submitBtn.classList.add('is-grown');
       icon.textContent = "🌳";
       text.textContent = "Baum erfolgreich gepflanzt!";
+      // Button bleibt bei Erfolg dauerhaft deaktiviert, da die Eingaben gesperrt sind
       
       fireTreeConfetti();
 
@@ -372,6 +375,8 @@ form.addEventListener('submit', async (e) => {
 
     } else {
       reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] ${data.message}</p>`;
+      // BEI FEHLER: Reaktivieren für einen neuen Versuch
+      submitBtn.disabled = false;
       submitBtn.classList.remove('is-watering');
       icon.textContent = "🌱";
       text.textContent = "Erneut versuchen";
@@ -379,14 +384,10 @@ form.addEventListener('submit', async (e) => {
 
   } catch (err) {
     reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] Verbindung zum Server fehlgeschlagen.</p>`;
+    // BEI FEHLER: Reaktivieren für einen neuen Versuch
+    submitBtn.disabled = false;
     submitBtn.classList.remove('is-watering');
     icon.textContent = "🌱";
     text.textContent = "Erneut versuchen";
   }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  generateAmbientCode();
-  typeWriter();
-  renderSvgForest();
 });
