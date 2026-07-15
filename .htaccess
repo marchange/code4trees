@@ -2,3 +2,9 @@ AuthType Basic
 AuthName "Dev-Umgebung"
 AuthUserFile /home/www/dev/.htpasswd
 Require valid-user
+
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^([^/]+)$ $1.html [L]
