@@ -1,5 +1,5 @@
 // --- CONFIGURATION ---
-const FETCH_INTERVAL_MS = 1000; // Update counter every 1 seconds
+const FETCH_INTERVAL_MS = 5000; // Update counter every 5 seconds
 const RANDOM_ADD_INTERVAL_MS = 3000; // Attempt a random add every 3 seconds
 
 const treeCountEl = document.getElementById('treeCount');
@@ -85,7 +85,7 @@ setInterval(async () => {
     if (Math.random() < 0.2) return; 
 
     // Add between 1 and 100 trees randomly
-    const randomTrees = Math.floor(Math.random() * 100) + 1; 
+    const randomTrees = Math.floor(Math.random() * 7) + 1; 
 
     try {
         // Fixed: Use a GET request so api.php processes the $_GET['add'] parameter
