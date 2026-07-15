@@ -1,25 +1,6 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<!-- Primary Meta Tags -->
-<title>code4trees — Gamified Education</title>
-<meta name="title" content="code4trees — Gamified Education">
-<meta name="description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
-
-<!-- Open Graph / Facebook / LinkedIn -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://code4trees.org/">
-<meta property="og:title" content="code4trees — Gamified Education">
-<meta property="og:description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
-<meta property="og:image" content="https://code4trees.org/public/assets/og-image.jpg">
-
-<!-- Twitter / X -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://code4trees.org/">
-<meta property="twitter:title" content="code4trees — Gamified Education">
-<meta property="twitter:description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
-<meta property="twitter:image" content="https://code4trees.org/public/assets/og-image.jpg">
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>code4trees — Vom Zip zum Setzling</title>
@@ -47,143 +28,118 @@
 <div class="floating-code" id="floatingCodeContainer"></div>
 
 <header>
-  <a class="logo" href="#"><span class="glyph">&#123;</span>code4trees<span class="glyph">&#125;</span></a>
-  <nav>
-    <a href="#ablauf">So geht's</a>
-    <a href="#einreichen">Projekt hochladen</a>
-  </nav>
+  <a class="logo" href="#"><span class="glyph">&#123;</span>code4trees<span class="glyph">&#125;</span></a>
+  <nav>
+    <a href="#ablauf">So geht's</a>
+    <a href="#einreichen">Projekt hochladen</a>
+  </nav>
 </header>
 
 <main>
-  <div class="hero">
-    <div class="hero-content">
-      <div class="eyebrow">// Coding meets Green Tech</div>
-      <h1 id="typewriter"></h1>
-      <p class="lead">Reiche dein fertiges Code-Projekt als Zip ein, erhalte sofortiges Feedback von unserer KI und baue deinen digitalen Wald auf. Für jedes Projekt pflanzen wir einen echten Baum.</p>
-      <div class="btn-wrapper">
-        <a class="btn btn-primary" href="#einreichen">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4m4 4l-4-4"></path></svg>
-          Zip hochladen
-        </a>
-        <a class="btn btn-ghost" href="#ablauf">Wie funktioniert das?</a>
-      </div>
-    </div>
+  <div class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">// Coding meets Green Tech</div>
+      <h1 id="typewriter"></h1>
+      <p class="lead">Reiche dein fertiges Code-Projekt als Zip ein, erhalte sofortiges Feedback von unserer KI und baue deinen digitalen Wald auf. Für jedes Projekt pflanzen wir einen echten Baum.</p>
+      <div class="btn-wrapper">
+        <a class="btn btn-primary" href="#einreichen">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+          Zip hochladen
+        </a>
+        <a class="btn btn-ghost" href="#ablauf">Wie funktioniert das?</a>
+      </div>
+    </div>
 
-    <div class="log-wrapper">
-      <div class="log" aria-label="Live-Aktivität">
-        <div class="log-bar"><span></span><span></span><span></span><em>live-feed — campus</em></div>
-        <div class="log-body" id="plantLog">
-          <div><span class="hash">usr_091</span> <span class="tree">🌱</span> <span class="msg">Python-Skript validiert</span> <span class="time">gerade eben</span></div>
-          <div><span class="hash">usr_442</span> <span class="tree">🌱</span> <span class="msg">Portfolio-Website hochgeladen</span> <span class="time">vor 2 Min</span></div>
-          <div><span class="hash">usr_881</span> <span class="tree">🌱</span> <span class="msg">Uni-Abgabe JS eingereicht</span> <span class="time">vor 14 Min</span></div>
-          <div><span class="hash">usr_012</span> <span class="tree">🌱</span> <span class="msg">React-App geprüft</span> <span class="time">vor 1 Std</span></div>
-          <div><span class="cursor">_</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
+    <div class="log-wrapper">
+      <div class="log" aria-label="Live-Aktivität">
+        <div class="log-bar"><span></span><span></span><span></span><em>live-feed — campus</em></div>
+        <div class="log-body" id="plantLog">
+          <div><span class="hash">usr_091</span> <span class="tree">🌱</span> <span class="msg">Python-Skript validiert</span> <span class="time">gerade eben</span></div>
+          <div><span class="hash">usr_442</span> <span class="tree">🌱</span> <span class="msg">Portfolio-Website hochgeladen</span> <span class="time">vor 2 Min</span></div>
+          <div><span class="hash">usr_881</span> <span class="tree">🌱</span> <span class="msg">Uni-Abgabe JS eingereicht</span> <span class="time">vor 14 Min</span></div>
+          <div><span class="hash">usr_012</span> <span class="tree">🌱</span> <span class="msg">React-App geprüft</span> <span class="time">vor 1 Std</span></div>
+          <div><span class="cursor">_</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-  <div class="counter">
-    <div class="counter-inner">
-      <div>
-        <div class="num" id="treeCount">0</div>
-        <div class="label">Bäume durch Studenten gepflanzt</div>
-      </div>
-      <div class="forest" id="forest" aria-hidden="true"></div>
-    </div>
-  </div>
+  <div class="counter">
+    <div class="counter-inner">
+      <div>
+        <div class="num" id="treeCount">0</div>
+        <div class="label">Bäume durch Studenten gepflanzt</div>
+      </div>
+      <div class="forest" id="forest" aria-hidden="true"></div>
+    </div>
+  </div>
 
-  <section id="ablauf">
-    <h2>Lernen mit gutem Gewissen</h2>
-    <p class="section-intro">Unser Ziel: Deine digitale Bildung fördern und gleichzeitig der Umwelt helfen. Keine strengen Professoren, sondern smarte KI-Unterstützung für dein Projekt.</p>
-    <div class="steps">
-      <div class="step">
-        <span class="tag">01 / Packen</span>
-        <h3>Code zippen</h3>
-        <p>Egal ob Uni-Hausübung, Side-Project oder Hackathon. Packe deinen Ordner in ein .zip-Archiv.</p>
-      </div>
-      <div class="step">
-        <span class="tag">02 / Scan</span>
-        <h3>Projekt prüfen</h3>
-        <p>Lade die Zip-Datei hoch. Unser KI-System scannt die Dateistruktur, gibt Feedback und verifiziert das Projekt.</p>
-      </div>
-      <div class="step">
-        <span class="tag">03 / Impact</span>
-        <h3>Wald aufforsten</h3>
-        <p>War das Projekt valide? Super! Dein Erfolg triggert unsere API und wir finanzieren die Pflanzung eines echten Baumes.</p>
-      </div>
-    </div>
-  </section>
+  <section id="ablauf">
+    <h2>Lernen mit gutem Gewissen</h2>
+    <p class="section-intro">Unser Ziel: Deine digitale Bildung fördern und gleichzeitig der Umwelt helfen. Keine strengen Professoren, sondern smarte KI-Unterstützung für dein Projekt.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="tag">01 / Packen</span>
+        <h3>Code zippen</h3>
+        <p>Egal ob Uni-Hausübung, Side-Project oder Hackathon. Packe deinen Ordner in ein .zip-Archiv.</p>
+      </div>
+      <div class="step">
+        <span class="tag">02 / Scan</span>
+        <h3>Projekt prüfen</h3>
+        <p>Lade die Zip-Datei hoch. Unser KI-System scannt die Dateistruktur, gibt Feedback und verifiziert das Projekt.</p>
+      </div>
+      <div class="step">
+        <span class="tag">03 / Impact</span>
+        <h3>Wald aufforsten</h3>
+        <p>War das Projekt valide? Super! Dein Erfolg triggert unsere API und wir finanzieren die Pflanzung eines echten Baumes.</p>
+      </div>
+    </div>
+  </section>
 
-  <section id="einreichen">
-    <h2>Projekt einreichen</h2>
-    <p class="section-intro">Zieh dein fertiges <strong>.zip Archiv</strong> einfach in die Box. Sobald die KI dein Projekt validiert hat, wächst dein Baum!</p>
+  <section id="einreichen">
+    <h2>Projekt einreichen</h2>
+    <p class="section-intro">Zieh dein fertiges <strong>.zip Archiv</strong> einfach in die Box. Sobald die KI dein Projekt validiert hat, wächst dein Baum!</p>
 
-    <form class="form-card" id="submitForm" novalidate>
-      <div class="form-grid">
-        <div class="field">
-          <label for="name">Dein Vorname (oder Nickname)</label>
-          <input type="text" id="name" name="name" required placeholder="z.B. Alex">
-        </div>
-        <div class="field">
-          <label for="project">Projektname</label>
-          <input type="text" id="project" name="project" required placeholder="z.B. Wetter-App">
-        </div>
-        
-        <div class="field dropzone-container">
-          <div class="dropzone" id="dropzone" role="button" tabindex="0">
-            <span class="sprout" aria-hidden="true">📁</span>
-            <strong>Zip hierher ziehen oder klicken</strong>
-            <small>Max. 50 MB (z.B. Python, Web, Java...)</small>
-            <input type="file" id="zipfile" name="zipfile" accept=".zip,application/zip" required>
-            <div class="file-chosen" id="fileChosen"></div>
-          </div>
-        </div>
-      </div>
+    <form class="form-card" id="submitForm" novalidate>
+      <div class="form-grid">
+        <div class="field">
+          <label for="name">Dein Vorname (oder Nickname)</label>
+          <input type="text" id="name" name="name" required placeholder="z.B. Alex">
+        </div>
+        <div class="field">
+          <label for="project">Projektname</label>
+          <input type="text" id="project" name="project" required placeholder="z.B. Wetter-App">
+        </div>
+        
+        <div class="field dropzone-container">
+          <div class="dropzone" id="dropzone" role="button" tabindex="0">
+            <span class="sprout" aria-hidden="true">📁</span>
+            <strong>Zip hierher ziehen oder klicken</strong>
+            <small>Max. 50 MB (z.B. Python, Web, Java...)</small>
+            <input type="file" id="zipfile" name="zipfile" accept=".zip,application/zip" required>
+            <div class="file-chosen" id="fileChosen"></div>
+          </div>
+        </div>
+      </div>
 
-      <div class="review-console" id="reviewConsole"></div>
+      <div class="review-console" id="reviewConsole"></div>
 
-      <!-- Success State: Tree ID Section -->
-      <div class="success-state" id="successState" style="display: none;">
-        <div class="tree-id-card">
-          <p class="tree-id-label">🌳 Deine baum-ID:</p>
-          <div class="tree-id-display">
-            <code id="treeIdValue"></code>
-            <button type="button" class="copy-btn" id="copyTreeIdBtn" aria-label="Tree ID in Zwischenablage kopieren">
-              <span class="copy-icon">📋</span>
-              <span class="copy-text">Kopieren</span>
-            </button>
-          </div>
-          <p class="share-hint">Teile deine ID für Social Media oder Bewerbungen!</p>
-        </div>
-      </div>
+      <!-- Gamified Submit Button -->
+      <button type="submit" class="gamified-btn" id="submitCodeBtn">
+        <div class="btn-bg"></div>
+        <span class="btn-icon">🌱</span>
+        <span class="btn-text">Projekt-Archiv als Samen pflanzen</span>
+      </button>
 
-      <!-- Gamified Submit Button -->
-      <button type="submit" class="gamified-btn" id="submitCodeBtn">
-        <div class="btn-bg"></div>
-        <span class="btn-icon">🌱</span>
-        <span class="btn-text">Projekt-Archiv als Samen pflanzen</span>
-      </button>
-
-    </form>
-  </section>
+    </form>
+  </section>
 </main>
 
 <footer>
-  <div class="footer-inner">
-    <!-- Links: Copyright, Impressum & Datenschutz -->
-    <div class="footer-left">
-      <span>© 2026 code4trees.org – Gamified Education.</span>
-      <a href="/impressum">Impressum</a>
-      <span class="separator">|</span>
-      <a href="/datenschutz">Datenschutz</a>
-    </div>
-    
-    <!-- Rechts: Dein Slogan -->
-    <div class="footer-right">
-      <span>Made by Students, for Students 💚</span>
-    </div>
-  </div>
+  <div class="counter-inner" style="padding: 40px 24px; border-top: 1px solid rgba(28, 51, 36, 0.5); font-family: var(--mono); font-size: 0.8rem; color: var(--paper-dim); display: flex; justify-content: space-between;">
+    <span>© 2026 code4trees.org — Gamified Education.</span>
+    <span>Made for Students.</span>
+  </div>
 </footer>
 
 <!-- External JS -->
