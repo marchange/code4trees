@@ -895,18 +895,4 @@ h2 {
   .dropzone { 
     padding: 40px 20px; 
   }
-  
-  .tree-id-display {
-    flex-direction: column;
-  }
-  
-  .tree-id-display code {
-    width: 100%;
-    max-width: none;
-  }
-  
-  .copy-btn {
-    width: 100%;
-    justify-content: center;
-  }
 }

@@ -3,6 +3,7 @@ name: 🚀 Deploy to IONOS Webspace
 on:
   push:
     branches:
+      - main
       - dev
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
       with:
         fetch-depth: 0 
     
-    - name: 📂 Mirror files via SFTP (Upload & Delete)
+    - name: 📂 Mirror files via SFTP
       uses: pressidium/lftp-mirror-action@v1
       with:
         host: ${{ secrets.SFTP_SERVER }}
@@ -23,6 +24,7 @@ jobs:
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
         localDir: './public'
-        remoteDir: '/dev'
+        remoteDir: ${{ github.ref_name == 'main' && '/public' || '/dev' }}
         reverse: true
         options: '--delete'
+        ignoreFile: '.lftp_ignore'
