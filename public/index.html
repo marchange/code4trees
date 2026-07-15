@@ -43,7 +43,7 @@
       <p class="lead">Reiche dein fertiges Code-Projekt als Zip ein, erhalte sofortiges Feedback von unserer KI und baue deinen digitalen Wald auf. Für jedes Projekt pflanzen wir einen echten Baum.</p>
       <div class="btn-wrapper">
         <a class="btn btn-primary" href="#einreichen">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4m4 4l-4-4"></path></svg>
           Zip hochladen
         </a>
         <a class="btn btn-ghost" href="#ablauf">Wie funktioniert das?</a>
@@ -123,6 +123,21 @@
       </div>
 
       <div class="review-console" id="reviewConsole"></div>
+
+      <!-- Success State: Tree ID Section -->
+      <div class="success-state" id="successState" style="display: none;">
+        <div class="tree-id-card">
+          <p class="tree-id-label">🌳 Deine baum-ID:</p>
+          <div class="tree-id-display">
+            <code id="treeIdValue"></code>
+            <button type="button" class="copy-btn" id="copyTreeIdBtn" aria-label="Tree ID in Zwischenablage kopieren">
+              <span class="copy-icon">📋</span>
+              <span class="copy-text">Kopieren</span>
+            </button>
+          </div>
+          <p class="share-hint">Teile deine ID für Social Media oder Bewerbungen!</p>
+        </div>
+      </div>
 
       <!-- Gamified Submit Button -->
       <button type="submit" class="gamified-btn" id="submitCodeBtn">
