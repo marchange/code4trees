@@ -26,6 +26,3 @@ jobs:
         remoteDir: '/public'
         reverse: true
         options: '--delete'
-        exclude: |
-            **/.htaccess
-            **/.htpasswd
