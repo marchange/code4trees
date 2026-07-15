@@ -910,3 +910,59 @@ h2 {
     justify-content: center;
   }
 }
+
+/* ---------- Footer Styling ---------- */
+footer {
+  border-top: 1px solid rgba(28, 51, 36, 0.5);
+  background: var(--pine-950);
+  padding: 30px 24px;
+  margin-top: 60px;
+}
+
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  color: var(--paper-dim);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footer-left a {
+  color: var(--paper-dim);
+  text-decoration: none;
+}
+
+.footer-left a:hover {
+  color: var(--leaf);
+}
+
+.footer-left .separator {
+  color: var(--pine-700);
+}
+
+.footer-right {
+  color: var(--moss);
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .footer-inner {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-left {
+    justify-content: center;
+  }
+}
