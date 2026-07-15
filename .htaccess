@@ -3,6 +3,8 @@ AuthName "Dev-Umgebung"
 AuthUserFile /home/www/dev/.htpasswd
 Require valid-user
 
+# --- URL-Rewriting  ---
+Options -MultiViews
 RewriteEngine On
 
 RewriteCond %{REQUEST_FILENAME} !-d
