@@ -1,48 +1,37 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<!-- Primary Meta Tags -->
-<title>code4trees — Gamified Education</title>
-<meta name="title" content="code4trees — Gamified Education">
-<meta name="description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>code4trees — Gamified Education</title>
+  <meta name="title" content="code4trees — Gamified Education">
+  <meta name="description" content="Zieh dein fertiges .zip-Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
 
-<!-- Open Graph / Facebook / LinkedIn -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://code4trees.org/">
-<meta property="og:title" content="code4trees — Gamified Education">
-<meta property="og:description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
-<meta property="og:image" content="https://code4trees.org/public/assets/og-image.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://code4trees.org/">
+  <meta property="og:title" content="code4trees — Gamified Education">
+  <meta property="og:description" content="Zieh dein fertiges .zip-Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
+  <meta property="og:image" content="https://code4trees.org/public/assets/og-image.jpg">
 
-<!-- Twitter / X -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://code4trees.org/">
-<meta property="twitter:title" content="code4trees — Gamified Education">
-<meta property="twitter:description" content="Zieh dein fertiges .zip Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
-<meta property="twitter:image" content="https://code4trees.org/public/assets/og-image.jpg">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="https://code4trees.org/">
+  <meta property="twitter:title" content="code4trees — Gamified Education">
+  <meta property="twitter:description" content="Zieh dein fertiges .zip-Archiv in die Box und lass deinen virtuellen Baum wachsen! Reiche dein studentisches Programmierprojekt ein und validiere es mit unserer KI.">
+  <meta property="twitter:image" content="https://code4trees.org/public/assets/og-image.jpg">
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>code4trees — Vom Zip zum Setzling</title>
-<meta name="description" content="Für jedes eingereichte Code-Projekt pflanzen wir einen Baum. Zip hochladen, Wald wachsen lassen.">
+  <link rel="icon" type="image/jpeg" href="icon.jpg">
 
-<!-- Dein Favicon -->
-<link rel="icon" type="image/jpeg" href="icon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- Canvas Confetti Library für die Partikel-Explosion -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-<!-- External CSS -->
-<link rel="stylesheet" href="style.css">
-
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Ambient Background Effects -->
 <div class="ambient-bg"></div>
 <div class="floating-code" id="floatingCodeContainer"></div>
 
@@ -143,7 +132,6 @@
 
       <div class="review-console" id="reviewConsole"></div>
 
-      <!-- Success State: Tree ID Section -->
       <div class="success-state" id="successState" style="display: none;">
         <div class="tree-id-card">
           <p class="tree-id-label">🌳 Deine baum-ID:</p>
@@ -158,7 +146,6 @@
         </div>
       </div>
 
-      <!-- Gamified Submit Button -->
       <button type="submit" class="gamified-btn" id="submitCodeBtn">
         <div class="btn-bg"></div>
         <span class="btn-icon">🌱</span>
@@ -171,7 +158,6 @@
 
 <footer>
   <div class="footer-inner">
-    <!-- Links: Copyright, Impressum & Datenschutz -->
     <div class="footer-left">
       <span>© 2026 code4trees.org – Gamified Education.</span>
       <a href="/impressum">Impressum</a>
@@ -179,14 +165,12 @@
       <a href="/datenschutz">Datenschutz</a>
     </div>
     
-    <!-- Rechts: Dein Slogan -->
     <div class="footer-right">
       <span>Made by Students, for Students 💚</span>
     </div>
   </div>
 </footer>
 
-<!-- External JS -->
 <script src="script.js"></script>
 
 </body>
