@@ -1,23 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // --- Ambient Background Effects ---
-    function generateAmbientCode() {
-      const container = document.getElementById('floatingCodeContainer');
-      if (!container) return;
-      const symbols = ['{}', '</>', '[]', '()', '=>', '&&', '||', ';'];
-      for (let i = 0; i < 15; i++) {
-        const el = document.createElement('div');
-        el.className = 'code-particle';
-        el.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-        el.style.left = `${Math.random() * 100}vw`;
-        el.style.animationDuration = `${10 + Math.random() * 20}s`;
-        el.style.animationDelay = `${Math.random() * 10}s`;
-        el.style.fontSize = `${1 + Math.random() * 1.5}rem`;
-        container.appendChild(el);
-      }
-    }
-    generateAmbientCode();
   
-    // --- Data Structure ---
     const categories = [
       { id: 'cat-chal', icon: '📚', name: 'Challenges' },
       { id: 'cat-bug', icon: '🐞', name: 'Bug Hunter' },
