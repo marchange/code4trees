@@ -17,19 +17,14 @@
 <link rel="stylesheet" href="style.css">
 
 <style>
-  /* Base Resets for IDE Fullscreen */
   html, body {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* KEIN SCROLLEN */
-    background-color: #080c08; /* Dunkler IDE Base-Background */
+    overflow: hidden;
+    background-color: #080c08; 
     color: #DFDFDF;
-  }
-
-  /* Override any global styles that might add padding/margins to body */
-  body {
     display: flex;
     flex-direction: column;
   }
@@ -45,13 +40,11 @@
     --chal-color: #7fb069;
   }
 
-  /* Custom Scrollbar for IDE */
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
-  /* --- LAYOUT GRID --- */
   .ide-layout {
     display: flex;
     flex: 1;
@@ -59,45 +52,35 @@
     width: 100vw;
     position: relative;
     z-index: 10;
+    /* Etwas Platz oben für die schwebende DevBar */
+    padding-top: 80px; 
+    box-sizing: border-box;
   }
 
-  /* --- 1. LEFT SIDEBAR --- */
+  /* --- LEFT SIDEBAR --- */
   .sidebar-left {
     width: 260px;
     flex-shrink: 0;
     background: var(--ide-bg-sidebar);
     border-right: 1px solid var(--ide-border);
+    border-top: 1px solid var(--ide-border);
+    border-top-right-radius: 8px;
     display: flex;
     flex-direction: column;
     z-index: 20;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
   }
-
-  .brand-header {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    padding: 0 20px;
-    border-bottom: 1px solid var(--ide-border);
-  }
-  .brand-header a.logo {
-    font-family: 'Bricolage Grotesque', sans-serif;
-    font-weight: 800;
-    font-size: 1.2rem;
-    color: #fff;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .brand-header .glyph { color: var(--leaf); }
 
   .nav-header {
     font-family: var(--mono);
     font-size: 0.7rem;
     text-transform: uppercase;
     color: rgba(255,255,255,0.4);
-    padding: 15px 20px 5px 20px;
+    padding: 20px 20px 10px 20px;
     letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
   }
 
   .explorer {
@@ -168,13 +151,15 @@
     background: rgba(0,0,0,0.3);
   }
 
-  /* --- 2. MIDDLE WORKSPACE --- */
+  /* --- MIDDLE WORKSPACE --- */
   .workspace-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     background: var(--ide-bg-main);
-    min-width: 0; /* Prevents flex overflow */
+    border-top: 1px solid var(--ide-border);
+    margin-bottom: 20px;
+    min-width: 0;
   }
 
   .placeholder-screen {
@@ -189,14 +174,12 @@
   }
   .placeholder-screen .icon { font-size: 3rem; margin-bottom: 20px; opacity: 0.5; }
 
-  /* Inner Workspace (hidden until task selected) */
   .workspace-inner {
     display: none;
     flex-direction: column;
     height: 100%;
   }
 
-  /* Top: Task Info */
   .task-header-area {
     padding: 20px 30px;
     border-bottom: 1px solid var(--ide-border);
@@ -231,7 +214,7 @@
     white-space: pre-wrap;
   }
 
-  /* Middle: Editor */
+  /* Editor */
   .editor-wrapper {
     flex: 1;
     display: flex;
@@ -298,7 +281,6 @@
   }
   .editor-textarea::selection { background: rgba(127, 176, 105, 0.3); }
 
-  /* Bottom: Actions */
   .editor-actions {
     height: 50px;
     border-top: 1px solid var(--ide-border);
@@ -329,15 +311,20 @@
   .btn-bug { background: var(--bug-color); color: #000; }
   .btn-next { background: #fff; color: #000; display: none; }
 
-  /* --- 3. RIGHT SIDEBAR (CONSOLE) --- */
+  /* --- RIGHT SIDEBAR --- */
   .sidebar-right {
     width: 320px;
     flex-shrink: 0;
     background: var(--ide-bg-console);
     border-left: 1px solid var(--ide-border);
+    border-top: 1px solid var(--ide-border);
+    border-top-left-radius: 8px;
     display: flex;
     flex-direction: column;
     z-index: 20;
+    margin-right: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5);
   }
   .console-header {
     height: 40px;
@@ -377,13 +364,27 @@
 <div class="ambient-bg"></div>
 <div class="floating-code" id="floatingCodeContainer"></div>
 
+<nav class="devbar">
+  <a href="index.html" class="devbar-brand">
+    <span class="devbar-status-dot"></span>
+    <span class="devbar-brand-text">code4trees</span>
+  </a>
+  
+  <div class="devbar-divider"></div>
+  
+  <div class="devbar-links">
+    <a href="index.html" class="devbar-link">
+      Dashboard
+    </a>
+    <a href="training.html" class="devbar-link active">
+      Code-Arena <span class="devbar-shortcut">IDE</span>
+    </a>
+  </div>
+</nav>
+
 <div class="ide-layout">
   
   <aside class="sidebar-left">
-    <div class="brand-header">
-      <a class="logo" href="index.html"><span class="glyph">&#123;</span>code4trees<span class="glyph">&#125;</span></a>
-    </div>
-    
     <div class="nav-header">Explorer</div>
     
     <div class="explorer" id="explorer">
@@ -442,6 +443,7 @@
     </div>
     <div class="console-body" id="console">
       <div class="log-line log-sys">> IDE initialized.</div>
+      <div class="log-line log-sys">> Workspace connected to main server.</div>
       <div class="log-line log-sys">> Waiting for execution...</div>
     </div>
   </aside>
@@ -450,7 +452,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Ambient Background ---
   function generateAmbientCode() {
     const container = document.getElementById('floatingCodeContainer');
     if (!container) return;
@@ -468,7 +469,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   generateAmbientCode();
 
-  // --- Data Structure ---
   const categories = [
     { id: 'cat-chal', icon: '📚', name: 'Challenges' },
     { id: 'cat-bug', icon: '🐞', name: 'Bug Hunter' },
@@ -478,28 +478,24 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const tasks = [
-    // Arrays
     { id: 1, catId: 'cat-arr', type: 'challenge', title: 'Two Sum Basics', difficulty: 'Easy', xp: 100, fnName: 'twoSum',
       desc: 'Gegeben ist ein Array mit Zahlen (nums) und ein Zielwert (target). Finde die Indizes der zwei Zahlen, deren Summe genau den Zielwert ergibt.',
       example: 'Input: nums = [2, 7, 11, 15], target = 9\nOutput: [0, 1]',
       code: 'function twoSum(nums, target) {\n    // Code here\n    \n}',
       tests: [{ inputs: [[2, 7, 11, 15], 9], expected: [0, 1] }, { inputs: [[3, 2, 4], 6], expected: [1, 2] }]
     },
-    // Strings
     { id: 2, catId: 'cat-str', type: 'challenge', title: 'Reverse String', difficulty: 'Easy', xp: 100, fnName: 'reverseString',
       desc: 'Drehe die Zeichenreihenfolge des übergebenen Strings um.',
       example: 'Input: "hello"\nOutput: "olleh"',
       code: 'function reverseString(str) {\n    // Code here\n    \n}',
       tests: [{ inputs: ["hello"], expected: "olleh" }, { inputs: ["a"], expected: "a" }]
     },
-    // Algorithms
     { id: 3, catId: 'cat-algo', type: 'challenge', title: 'Find Maximum Number', difficulty: 'Easy', xp: 100, fnName: 'findMax',
       desc: 'Finde die größte Zahl in dem übergebenen Array.',
       example: 'Input: [3, 8, 2, 10, 5]\nOutput: 10',
       code: 'function findMax(numbers) {\n    // Code here\n    \n}',
       tests: [{ inputs: [[3, 8, 2, 10, 5]], expected: 10 }, { inputs: [[-1, -5, -2, -10]], expected: -1 }]
     },
-    // Bug Hunter
     { id: 4, catId: 'cat-bug', type: 'bug', title: 'Array Calculator Bug', difficulty: 'Easy', xp: 150, fnName: 'calculateSum',
       desc: 'Die Funktion liefert fehlerhafte Ergebnisse (String-Verkettung). Finde und behebe den Fehler.',
       example: 'Erwartet bei [1, 2, 3]: 6\nAktuell: "123"',
@@ -532,34 +528,24 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   ];
 
-  // --- State Management ---
-  let state = JSON.parse(localStorage.getItem('ideState')) || {
-    completed: [],
-    xp: 0,
-    codes: {}
-  };
+  let state = JSON.parse(localStorage.getItem('ideState')) || { completed: [], xp: 0, codes: {} };
   let activeTaskId = null;
 
-  // --- DOM Elements ---
   const explorerEl = document.getElementById('explorer');
   const placeholderEl = document.getElementById('placeholder');
   const workspaceEl = document.getElementById('workspace');
   const textareaEl = document.getElementById('editor-textarea');
   const linesEl = document.getElementById('editor-lines');
   const consoleEl = document.getElementById('console');
-  
   const btnReset = document.getElementById('btn-reset');
   const btnRun = document.getElementById('btn-run');
   const btnNext = document.getElementById('btn-next');
 
-  // --- Rendering Sidebar ---
   function renderSidebar() {
     explorerEl.innerHTML = '';
-    
     categories.forEach(cat => {
       const catTasks = tasks.filter(t => t.catId === cat.id);
       if(catTasks.length === 0) return;
-
       const catEl = document.createElement('div');
       catEl.className = 'category-item';
       
@@ -574,37 +560,28 @@ document.addEventListener("DOMContentLoaded", () => {
       catTasks.forEach((t, i) => {
         const isSolved = state.completed.includes(t.id);
         const isActive = activeTaskId === t.id;
-        if (isActive) catEl.classList.add('open'); // Auto open active category
-
+        if (isActive) catEl.classList.add('open');
         const li = document.createElement('li');
         const tBtn = document.createElement('button');
         tBtn.className = `task-btn ${isSolved ? 'solved' : ''} ${isActive ? 'active' : ''}`;
         tBtn.innerHTML = `<span class="status">${isSolved ? '✓' : String(i+1).padStart(2,'0')}</span> ${t.title}`;
         tBtn.onclick = () => loadTask(t.id);
-        
         li.appendChild(tBtn);
         list.appendChild(li);
       });
-
       catEl.appendChild(btn);
       catEl.appendChild(list);
       explorerEl.appendChild(catEl);
     });
-
-    // Update Stats
     document.getElementById('xp-display').textContent = `${state.xp} XP`;
     document.getElementById('progress-display').textContent = `${state.completed.length} / ${tasks.length} gelöst`;
   }
 
-  // --- Load Task into Workspace ---
   function loadTask(id) {
     activeTaskId = id;
     const task = tasks.find(t => t.id === id);
-    
     placeholderEl.style.display = 'none';
     workspaceEl.style.display = 'flex';
-    
-    // Header
     document.getElementById('t-title').textContent = task.title;
     const diffEl = document.getElementById('t-diff');
     diffEl.textContent = task.difficulty;
@@ -614,7 +591,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('t-example').textContent = task.example;
     document.getElementById('t-filename').textContent = `${task.fnName}.js`;
     
-    // Editor styling based on type
     if(task.type === 'bug') {
       btnRun.textContent = '🐞 Find Bug';
       btnRun.className = 'action-btn btn-bug';
@@ -622,19 +598,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btnRun.textContent = '▶ Run Code';
       btnRun.className = 'action-btn btn-run';
     }
-    
     btnNext.style.display = 'none';
-
-    // Load Code
     textareaEl.value = state.codes[id] || task.code;
     updateLines();
-    
     logToConsole(`> Task loaded: ${task.title}. Ready to compile.`, 'sys');
-    
-    renderSidebar(); // refresh active states
+    renderSidebar();
   }
 
-  // --- Editor Logic ---
   function updateLines() {
     const count = textareaEl.value.split('\n').length;
     linesEl.innerHTML = Array(count).fill(0).map((_, i) => i + 1).join('<br>');
@@ -663,7 +633,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Button Actions ---
   btnReset.addEventListener('click', () => {
     if(activeTaskId && confirm("Code zurücksetzen?")) {
       const task = tasks.find(t => t.id === activeTaskId);
@@ -675,11 +644,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  function saveState() {
-    localStorage.setItem('ideState', JSON.stringify(state));
-  }
+  function saveState() { localStorage.setItem('ideState', JSON.stringify(state)); }
 
-  // --- Console Logging ---
   function logToConsole(htmlString, type = 'sys') {
     const div = document.createElement('div');
     div.className = `log-line log-${type}`;
@@ -688,9 +654,7 @@ document.addEventListener("DOMContentLoaded", () => {
     consoleEl.scrollTop = consoleEl.scrollHeight;
   }
 
-  function clearConsole() {
-    consoleEl.innerHTML = '';
-  }
+  function clearConsole() { consoleEl.innerHTML = ''; }
 
   function deepEqual(a, b) {
     if (a === b) return true;
@@ -703,12 +667,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   }
 
-  // --- Run / Eval Logic ---
   btnRun.addEventListener('click', () => {
     if(!activeTaskId) return;
     const task = tasks.find(t => t.id === activeTaskId);
     const code = textareaEl.value;
-    
     clearConsole();
     logToConsole(`> Compiling and running tests for ${task.fnName}...`, 'sys');
     
@@ -719,7 +681,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if(typeof ${task.fnName} !== 'function') throw new Error("Function ${task.fnName} not found.");
           return ${task.fnName};
         `);
-        
         const fn = executor();
         let passedAll = true;
 
@@ -728,7 +689,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const argsCopy = JSON.parse(JSON.stringify(tst.inputs));
             const res = fn(...argsCopy);
             const passed = deepEqual(res, tst.expected);
-            
             if(passed) {
               logToConsole(`<div class="log-test pass">✓ Test ${i+1} passed</div>`, 'success');
             } else {
@@ -743,26 +703,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if(passedAll) {
           logToConsole('<br>> ALL TESTS PASSED! 🎉', 'success');
-          
           if(!state.completed.includes(task.id)) {
             state.completed.push(task.id);
             state.xp += task.xp;
             saveState();
             renderSidebar();
-            
             confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
           }
-          
-          // Next logic
           const currentIndex = tasks.findIndex(t => t.id === task.id);
           if(currentIndex < tasks.length - 1) {
             btnNext.style.display = 'flex';
           }
-          
         } else {
           logToConsole('<br>> Execution finished with errors.', 'error');
         }
-
       } catch(e) {
         logToConsole(`> Syntax/Compilation Error:<br><span style="color:#ff6b6b">${e.message}</span>`, 'error');
       }
@@ -776,10 +730,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Init
   renderSidebar();
 });
 </script>
-
 </body>
 </html>

@@ -965,4 +965,114 @@ footer {
   .footer-left {
     justify-content: center;
   }
+  /* =========================================
+   FLOATING DEVBAR (Global Navigation)
+   ========================================= */
+.devbar {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 14, 10, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(127, 176, 105, 0.25);
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px 6px 18px;
+  z-index: 9999;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: max-content;
+  max-width: 95vw;
+}
+
+.devbar:hover {
+  background: rgba(15, 22, 15, 0.85);
+  border-color: rgba(127, 176, 105, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 
+              0 0 20px rgba(127, 176, 105, 0.15);
+}
+
+.devbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-right: 12px;
+  text-decoration: none;
+}
+
+.devbar-status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--leaf, #7fb069);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--leaf, #7fb069);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(127, 176, 105, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(127, 176, 105, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(127, 176, 105, 0); }
+}
+
+.devbar-brand-text {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.devbar-divider {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 8px;
+}
+
+.devbar-links {
+  display: flex;
+  gap: 4px;
+}
+
+.devbar-link {
+  font-family: var(--mono, 'IBM Plex Mono', monospace);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.devbar-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.devbar-link.active {
+  color: #0c140c;
+  background: var(--leaf, #7fb069);
+  font-weight: 500;
+}
+
+.devbar-shortcut {
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: inherit;
+  opacity: 0.7;
+}
+.devbar-link.active .devbar-shortcut {
+  border-color: rgba(0,0,0,0.2);
+}
 }
