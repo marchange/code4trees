@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function showFile(file){
     if(!file) return;
     
+    // 1. Einfacher Extension-Check
     if(!file.name.toLowerCase().endsWith('.zip')){
       chosen.style.display = 'block';
       chosen.style.color = 'var(--sun)';
@@ -201,24 +202,68 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     
+    // 2. Inhalt der Zip-Datei prüfen (Client-side Check)
     chosen.style.display = 'block';
-    chosen.style.color = 'var(--leaf)';
-    chosen.textContent = '✓ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB)';
-    sproutIcon.textContent = '📦';
-    dz.style.borderColor = 'var(--leaf)';
-  }
+    chosen.style.color = 'var(--paper-dim)';
+    chosen.textContent = 'Analysiere Archiv-Inhalt...';
 
-  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); dz.classList.add('dragover');
-  }));
-  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
-    e.preventDefault(); dz.classList.remove('dragover');
-  }));
-  dz.addEventListener('drop', e => {
-    if(e.dataTransfer.files.length){
-      fileInput.files = e.dataTransfer.files;
-      showFile(fileInput.files[0]);
-    }
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const arrayBuffer = event.target.result;
+      
+      JSZip.loadAsync(arrayBuffer).then(zip => {
+        const fileNames = Object.keys(zip.files);
+        
+        // Prüfen, ob das Zip komplett leer ist
+        if (fileNames.length === 0) {
+          chosen.style.color = 'var(--sun)';
+          chosen.textContent = '⚠️ Das Zip-Archiv ist leer!';
+          fileInput.value = '';
+          return;
+        }
+
+        // Prüfen, ob mindestens eine typische Projektdatei im Zip liegt (Ordner ausschließen)
+        const hasValidProjectFile = fileNames.some(name => {
+          const isDir = zip.files[name].dir;
+          if (isDir) return false;
+
+          const lowerName = name.toLowerCase();
+          return lowerName.endsWith('readme.md') ||
+                 lowerName.endsWith('.js') ||
+                 lowerName.endsWith('.py') ||
+                 lowerName.endsWith('.html') ||
+                 lowerName.endsWith('.css') ||
+                 lowerName.endsWith('.java') ||
+                 lowerName.endsWith('.cpp') ||
+                 lowerName.endsWith('.c') ||
+                 lowerName.endsWith('.cs') ||
+                 lowerName.endsWith('.json');
+        });
+
+        if (!hasValidProjectFile) {
+          chosen.style.color = 'var(--sun)';
+          chosen.textContent = '⚠️ Kein gültiges Projekt! Das Zip muss mindestens eine Projektdatei enthalten (z. B. README.md, .js, .py, .html, .java).';
+          fileInput.value = ''; // Input zurücksetzen
+          dz.style.borderColor = 'var(--sun)';
+          return;
+        }
+
+        // Wenn alles passt: Erfolgreich anzeigen!
+        chosen.style.color = 'var(--leaf)';
+        chosen.textContent = '✓ ' + file.name + ' (' + (file.size/1024/1024).toFixed(1) + ' MB) — Bereit zum Pflanzen!';
+        sproutIcon.textContent = '📦';
+        dz.style.borderColor = 'var(--leaf)';
+
+      }).catch(err => {
+        console.error("Zip-Parsing Fehler:", err);
+        chosen.style.color = 'var(--sun)';
+        chosen.textContent = '⚠️ Die Zip-Datei konnte nicht gelesen werden (eventuell beschädigt).';
+        fileInput.value = '';
+      });
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
   });
 
   // --- 5. Gamifizierter Submit & Backend Call ---
