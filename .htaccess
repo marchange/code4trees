@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Dev-Umgebung"
+AuthUserFile /home/www/dev/.htpasswd
+Require valid-user
