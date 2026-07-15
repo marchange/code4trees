@@ -115,7 +115,6 @@ function generateAmbientCode() {
     container.appendChild(el);
   }
 }
-generateAmbientCode();
 
 // --- 2. Typewriter Effect für H1 ---
 function typeWriter() {
@@ -143,7 +142,6 @@ function typeWriter() {
   }
   setTimeout(type, 500);
 }
-typeWriter();
 
 // --- 3. Kleiner SVG-Wald im Counter-Streifen ---
 function renderSvgForest() {
@@ -161,7 +159,6 @@ function renderSvgForest() {
   }
   forest.innerHTML = html;
 }
-renderSvgForest();
 
 // --- 4. Huge Dropzone Logic (Safe) ---
 const dz = document.getElementById('dropzone');
@@ -312,4 +309,10 @@ form.addEventListener('submit', async (e) => {
     icon.textContent = "🌱";
     text.textContent = "Erneut versuchen";
   }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  generateAmbientCode();
+  typeWriter();
+  renderSvgForest();
 });
