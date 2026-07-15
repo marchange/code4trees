@@ -1,17 +1,102 @@
-// --- LIVE API CALL: Bäume vom Server holen ---
-const treeCountEl = document.getElementById('treeCount');
+// --- CONFIGURATION ---
+const FETCH_INTERVAL_MS = 1000; // Update counter every 1 seconds
+const RANDOM_ADD_INTERVAL_MS = 3000; // Attempt a random add every 3 seconds
 
+const treeCountEl = document.getElementById('treeCount');
+let currentDisplayedCount = -1;
+let activeAnimationFrame = null;
+let liveDisplayedValue = 0;
+
+// --- ODOMETER ANIMATION FUNCTION ---
+function animateValue(obj, start, end) {
+  // If a previous roll-up animation is still running, stop it
+  if (activeAnimationFrame) {
+    window.cancelAnimationFrame(activeAnimationFrame);
+    activeAnimationFrame = null;
+  }
+
+  // Calculate how many trees we are adding
+  const diff = end - start;
+  
+  // 800ms per tree so it rolls slowly. 
+  // Minimum 1.5 seconds, Maximum 5 seconds so it doesn't run forever on huge jumps.
+  const duration = Math.min(Math.max(diff * 800, 1500), 5000); 
+
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    
+    const rawProgress = Math.min((timestamp - startTimestamp) / duration, 1);
+    
+    // Ease-out (cubic) so it slows down toward the end instead of stopping abruptly
+    const progress = 1 - Math.pow(1 - rawProgress, 3);
+    
+    // Update the DOM safely with formatting
+    const currentNum = Math.floor(progress * diff + start);
+    obj.innerHTML = currentNum.toLocaleString('de-AT');
+    liveDisplayedValue = currentNum;
+    
+    if (rawProgress < 1) {
+      activeAnimationFrame = window.requestAnimationFrame(step);
+    } else {
+      // Force exact end number just in case math rounds weirdly
+      obj.innerHTML = end.toLocaleString('de-AT'); 
+      liveDisplayedValue = end;
+      activeAnimationFrame = null;
+    }
+  };
+  activeAnimationFrame = window.requestAnimationFrame(step);
+}
+
+// --- LIVE API CALL: Fetch and Animate ---
 async function fetchLiveTreeCount() {
   try {
     const response = await fetch('api.php');
-    if (!response.ok) throw new Error('API nicht bereit');
+    if (!response.ok) throw new Error('API down');
+    
     const data = await response.json();
-    treeCountEl.textContent = data.trees.toLocaleString('de-AT');
+    const newCount = data.trees;
+
+    // If it's the first time loading the page, roll up from 0
+    if (currentDisplayedCount === -1) {
+      currentDisplayedCount = 0;
+      liveDisplayedValue = 0;
+      animateValue(treeCountEl, 0, newCount);
+      currentDisplayedCount = newCount;
+    } 
+    // If the number grew, animate it
+    else if (newCount > currentDisplayedCount) {
+        animateValue(treeCountEl, liveDisplayedValue, newCount);
+        currentDisplayedCount = newCount;
+      }
   } catch (error) {
-    console.error("API nicht erreichbar. Fallback läuft.");
+    console.error("API error", error);
   }
 }
+
+// Fire immediately on load, then loop every 3 seconds
 fetchLiveTreeCount();
+setInterval(fetchLiveTreeCount, FETCH_INTERVAL_MS);
+
+
+// --- RANDOM BACKGROUND INCREMENTS ---
+setInterval(async () => {
+    // 20% chance to skip adding, makes it feel more organic and random
+    if (Math.random() > 0.2) return; 
+
+    // Add between 1 and 100 trees randomly
+    const randomTrees = Math.floor(Math.random() * 100) + 1; 
+
+    try {
+        await fetch('api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ add: randomTrees })
+        });
+    } catch (e) {
+        console.error("Random add failed", e);
+    }
+}, RANDOM_ADD_INTERVAL_MS);
 
 
 // --- 1. Ambient Floating Code Particles ---
@@ -76,7 +161,6 @@ const fileInput = document.getElementById('zipfile');
 const chosen = document.getElementById('fileChosen');
 const sproutIcon = dz.querySelector('.sprout');
 
-// Wenn auf die gesamte Box geklickt wird, triggere den Input
 dz.addEventListener('click', (e) => {
   if (e.target !== fileInput) {
     fileInput.click();
@@ -92,7 +176,6 @@ fileInput.addEventListener('change', (e) => {
 function showFile(file){
   if(!file) return;
   
-  // Datei-Validierung
   if(!file.name.toLowerCase().endsWith('.zip')){
     chosen.style.display = 'block';
     chosen.style.color = 'var(--sun)';
@@ -112,7 +195,6 @@ dz.addEventListener('click', () => fileInput.click());
 dz.addEventListener('keydown', e => {
   if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileInput.click(); }
 });
-fileInput.addEventListener('change', () => showFile(fileInput.files[0]));
 
 ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
   e.preventDefault(); dz.classList.add('dragover');
@@ -127,7 +209,7 @@ dz.addEventListener('drop', e => {
   }
 });
 
-// --- 5. Gamifizierter Submit & Confetti Explosion ---
+// --- 5. Gamifizierter Submit & Backend Call ---
 const form = document.getElementById('submitForm');
 const submitBtn = document.getElementById('submitCodeBtn');
 const reviewConsole = document.getElementById('reviewConsole');
@@ -150,10 +232,9 @@ function fireTreeConfetti() {
   }());
 }
 
-form.addEventListener('submit', (e) => {
+form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // 1. Validierung
   if(!form.checkValidity()){ 
     form.reportValidity(); 
     return; 
@@ -166,52 +247,57 @@ form.addEventListener('submit', (e) => {
     return;
   }
 
-  // 2. Watering State (Scan Simulation)
   const icon = submitBtn.querySelector('.btn-icon');
   const text = submitBtn.querySelector('.btn-text');
   
   submitBtn.classList.add('is-watering');
   icon.textContent = "💧";
-  text.textContent = "KI wässert und scannt Archiv...";
+  text.textContent = "Lade Archiv hoch und prüfe...";
   
   reviewConsole.style.display = "block";
-  reviewConsole.innerHTML = `<p class="sys">> Entpacke Archiv...</p>`;
+  reviewConsole.innerHTML = `<p class="sys">> Sende Daten an Backend...</p>`;
 
-  setTimeout(() => {
-    reviewConsole.innerHTML += `<p class="sys">> Analysiere Datei-Struktur...</p>`;
-  }, 800);
+  const formData = new FormData(form);
 
-  setTimeout(() => {
-    reviewConsole.innerHTML += `<p class="success-text">> [OK] Projekt als valide eingestuft!</p>`;
-  }, 1600);
+  try {
+    const response = await fetch('api.php', {
+      method: 'POST',
+      body: formData
+    });
 
-  // 3. Grown State (Success) + API Update
-  setTimeout(async () => {
-    reviewConsole.innerHTML += `<br><p class="success-text">> API Call an Aufforstungsprojekt erfolgreich. Danke für deinen Beitrag!</p>`;
-    
-    submitBtn.classList.remove('is-watering');
-    submitBtn.classList.add('is-grown');
-    icon.textContent = "🌳";
-    text.textContent = "Baum erfolgreich gepflanzt!";
-    
-    fireTreeConfetti();
+    const data = await response.json();
 
-    // API Update aufrufen
-    try {
-      const response = await fetch('api.php?add=1');
-      if (response.ok) {
-        const data = await response.json();
-        treeCountEl.textContent = data.trees.toLocaleString('de-AT');
-        treeCountEl.classList.add('pop');
-        setTimeout(() => treeCountEl.classList.remove('pop'), 400);
+    if (data.status === 'success') {
+      reviewConsole.innerHTML += `<br><p class="success-text">> [OK] ${data.message}</p>`;
+      
+      submitBtn.classList.remove('is-watering');
+      submitBtn.classList.add('is-grown');
+      icon.textContent = "🌳";
+      text.textContent = "Baum erfolgreich gepflanzt!";
+      
+      fireTreeConfetti();
+
+      // Trigger animation for the manual upload
+      if (data.newCount > currentDisplayedCount) {
+          animateValue(treeCountEl, liveDisplayedValue, data.newCount);
+          currentDisplayedCount = data.newCount;
       }
-    } catch (err) {
-      console.log("Zähler konnte visuell nicht geupdatet werden.");
+      
+      fileInput.disabled = true;
+      document.getElementById('name').disabled = true;
+      document.getElementById('project').disabled = true;
+
+    } else {
+      reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] ${data.message}</p>`;
+      submitBtn.classList.remove('is-watering');
+      icon.textContent = "🌱";
+      text.textContent = "Erneut versuchen";
     }
 
-    // Felder deaktivieren nach Erfolg
-    fileInput.disabled = true;
-    document.getElementById('name').disabled = true;
-    document.getElementById('project').disabled = true;
-  }, 3000);
+  } catch (err) {
+    reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] Verbindung zum Server fehlgeschlagen.</p>`;
+    submitBtn.classList.remove('is-watering');
+    icon.textContent = "🌱";
+    text.textContent = "Erneut versuchen";
+  }
 });

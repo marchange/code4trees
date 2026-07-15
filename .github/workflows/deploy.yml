@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
   web-deploy:
@@ -23,6 +24,7 @@ jobs:
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
         localDir: './public'
-        remoteDir: '/public'
+        #Deploy to /public if main branch, otherwise deploy to /dev
+        remoteDir: ${{ github.ref_name == 'main' && '/public' || '/dev' }}
         reverse: true
-        options: '--delete'
+        options: '--delete --exclude-glob .htaccess --exclude-glob .htpasswd'
