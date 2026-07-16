@@ -134,7 +134,6 @@ header {
 
 /* ---------- Navbar ---------- */
 
-
 nav a{
   font-family:var(--mono);font-size:.85rem;color:var(--paper-dim);
   text-decoration:none;margin-left:22px;
