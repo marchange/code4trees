@@ -135,24 +135,52 @@ header {
 
 /* ---------- Navbar ---------- */
 
-nav a{
-  .nav a {
-    font-family: var(--mono);
-    font-size: .85rem;
-    color: var(--paper-dim);
-    text-decoration: none;
-    margin-left: 0; /* Margin-left mit sauberem flex-gap ersetzt */
-  }
-
-}
-.nav a:hover,
-.nav a.active {
-  color: var(--leaf);
-}
-
+/* 2. Der Navigations-Container */
 .nav {
   display: flex;
-  gap: 22px;
+  gap: 16px; /* Sauberer Abstand zwischen den Links */
+  align-items: center;
+}
+
+/* 3. Das elegante Basis-Design der Nav-Links */
+.nav a {
+  text-decoration: none; /* Entfernt den hässlichen Unterstrich */
+  color: #52525b; /* Dezentes, elegantes Grau für inaktive Links */
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px; /* Sanfte Rundungen */
+  background-color: transparent;
+  
+  /* Der Trick für den flüssigen Hover-Effekt */
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 4. Der Hover-Effekt (beim Drüberfahren) */
+.nav a:hover {
+  background-color: #f4f4f5; /* Sehr helles Grau beim Hovern */
+  color: #18181b; /* Text wird etwas dunkler */
+  transform: translateY(-2px); /* Link schwebt leicht nach oben */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Subtiler Schatten entsteht */
+}
+
+/* 5. Der Active-Status (die Klasse "active" aus deinem HTML) */
+.nav a.active {
+  background-color: #10b981; /* Schickes Grün für die aktive Seite */
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25); /* Passender, farbiger Schatten */
+}
+
+/* Optional: "Einreichen" besonders hervorheben (als eine Art Call-to-Action Button) */
+.nav a[href="#einreichen"] {
+  border: 1px solid #10b981; /* Grüne Umrandung */
+  color: #10b981;
+}
+
+.nav a[href="#einreichen"]:hover {
+  background-color: #10b981;
+  color: #ffffff;
 }
 
 /* ---------- Hero ---------- */
