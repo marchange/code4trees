@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeAnimationFrame = null;
   let liveDisplayedValue = 0;
 
-  // Fixed Arrays for deterministic colors and heights (prevents random changes on update)
+ // Fixed Arrays for deterministic colors and heights
   const treeColors = ['#7FB069', '#A7C957', '#5E8B4C'];
   const heightOffsets = [5, 12, 2, 8, 14, 4, 10, 1, 7, 11, 3, 13, 6, 9, 0, 15];
 
@@ -25,10 +25,32 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
       }
 
-      // Lock the magnitude step based on the FINAL target number
+      //Custom breakpoints so that the number of trees scales nicely with the total count
       let step = 1;
-      if (targetNum > 10) {
-          step = Math.pow(10, Math.floor(Math.log10(targetNum - 1)));
+      const breakpoints = [
+          { limit: 20, step: 1 },        // 1 to 20 trees
+          { limit: 100, step: 5 },       // 4 to 20 trees (1 SVG = 5)
+          { limit: 200, step: 10 },      // 10 to 20 trees (1 SVG = 10)
+          { limit: 1000, step: 50 },     // 4 to 20 trees (1 SVG = 50)
+          { limit: 2000, step: 100 },    // 10 to 20 trees (1 SVG = 100)
+          { limit: 10000, step: 500 },   // 4 to 20 trees (1 SVG = 500)
+          { limit: 20000, step: 1000 },  // 10 to 20 trees (1 SVG = 1000)
+          { limit: 100000, step: 5000 },
+          { limit: 200000, step: 10000 },
+          { limit: 1000000, step: 50000 },
+          { limit: 2000000, step: 100000 }
+      ];
+
+      for (let bp of breakpoints) {
+          if (targetNum <= bp.limit) {
+              step = bp.step;
+              break;
+          }
+      }
+      
+      // Fallback just in case the app goes incredibly viral
+      if (targetNum > 2000000) {
+          step = Math.pow(10, Math.floor(Math.log10(targetNum / 20)));
       }
 
       if (window.currentMagnitudeStep !== step) {
@@ -48,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
           const hOffset = heightOffsets[idx % heightOffsets.length];
           const color = treeColors[idx % treeColors.length];
           
-          // FIX: We wrap the SVG in a div. The JS stretches the div, the CSS sways the SVG!
           const treeHTML = `<div class="tree-wrapper" style="margin: 0 -4px; transform-origin: bottom center; transform: scaleY(0);">
             <svg width="24" height="${30 + hOffset}" viewBox="0 0 24 ${30 + hOffset}" xmlns="http://www.w3.org/2000/svg" class="tree-svg">
               <rect x="11" y="${18 + hOffset}" width="3" height="12" fill="#8A6F4D"/>
@@ -65,8 +86,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       for (let i = 0; i < existingNodes.length; i++) {
           if (i === existingNodes.length - 1 && remainder > 0) {
-              // Stretch the wrapper vertically
-              existingNodes[i].style.transform = `scaleY(${Math.max(0.01, fractionalScale)})`;
+            // Stretch the wrapper vertically
+              const displayScale = Math.pow(fractionalScale, 0.3);
+              existingNodes[i].style.transform = `scaleY(${displayScale})`;
           } else {
               existingNodes[i].style.transform = 'scaleY(1)';
           }
