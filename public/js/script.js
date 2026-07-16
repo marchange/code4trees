@@ -1,3 +1,5 @@
+API_PATH = 'api/api.php'; // Define the API path as a constant
+
 document.addEventListener("DOMContentLoaded", () => {
 
   const FETCH_INTERVAL_MS = 10000; // Update counter every 10 seconds
@@ -55,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function fetchLiveTreeCount() {
     try {
       // Fixed: Added cache: 'no-store' to force fresh data
-      const response = await fetch('api.php', { cache: 'no-store' });
+      const response = await fetch(API_PATH, { cache: 'no-store' });
       if (!response.ok) throw new Error('API down');
       
       const data = await response.json();
@@ -93,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       try {
           // Fixed: Use a GET request so api.php processes the $_GET['add'] parameter
-          await fetch(`api.php?add=${randomTrees}`);
+          await fetch(`${API_PATH}?add=${randomTrees}`);
       } catch (e) {
           console.error("Random add failed", e);
       }
@@ -409,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData(form);
 
       try {
-        const response = await fetch('api.php', {
+        const response = await fetch(API_PATH, {
           method: 'POST',
           body: formData
         });
