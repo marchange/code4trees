@@ -132,33 +132,15 @@ header {
   animation: pulseGlow 2s infinite alternate; 
 }
 
-nav a {
-  font-family: var(--mono); 
-  font-size: 0.85rem; 
-  color: var(--paper-dim);
-  text-decoration: none; 
-  margin-left: 24px; 
-  position: relative;
-}
+/* ---------- Navbar ---------- */
 
-nav a:hover { 
-  color: var(--leaf); 
-}
 
-nav a::after {
-  content: ''; 
-  position: absolute; 
-  width: 0; 
-  height: 1px;
-  bottom: -4px; 
-  left: 0; 
-  background-color: var(--leaf); 
-  transition: width 0.3s ease;
+nav a{
+  font-family:var(--mono);font-size:.85rem;color:var(--paper-dim);
+  text-decoration:none;margin-left:22px;
 }
-
-nav a:hover::after { 
-  width: 100%; 
-}
+nav a:hover{color:var(--leaf)}
+nav a.active{color:var(--leaf)}
 
 /* ---------- Hero ---------- */
 .hero {
