@@ -10,43 +10,108 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeAnimationFrame = null;
   let liveDisplayedValue = 0;
 
-  // --- ODOMETER ANIMATION FUNCTION ---
+  // Fixed Arrays for deterministic colors and heights (prevents random changes on update)
+  const treeColors = ['#7FB069', '#A7C957', '#5E8B4C'];
+  const heightOffsets = [5, 12, 2, 8, 14, 4, 10, 1, 7, 11, 3, 13, 6, 9, 0, 15];
+
+  // --- 1. DYNAMIC GROWING FOREST LOGIC ---
+  function updateForestVisuals(currentFloat, targetNum) {
+      const forest = document.getElementById('forest');
+      if (!forest) return;
+      
+      if (currentFloat === 0) {
+          forest.innerHTML = '';
+          window.currentMagnitudeStep = -1;
+          return;
+      }
+
+      // Lock the magnitude step based on the FINAL target number
+      let step = 1;
+      if (targetNum > 10) {
+          step = Math.pow(10, Math.floor(Math.log10(targetNum - 1)));
+      }
+
+      if (window.currentMagnitudeStep !== step) {
+          forest.innerHTML = '';
+          window.currentMagnitudeStep = step;
+      }
+
+      const fullTrees = Math.floor(currentFloat / step);
+      const remainder = currentFloat % step;
+      const fractionalScale = remainder / step;
+      
+      const totalNodesNeeded = remainder > 0 ? fullTrees + 1 : fullTrees;
+      const existingNodes = forest.children;
+
+      while (existingNodes.length < totalNodesNeeded) {
+          const idx = existingNodes.length;
+          const hOffset = heightOffsets[idx % heightOffsets.length];
+          const color = treeColors[idx % treeColors.length];
+          
+          // FIX: We wrap the SVG in a div. The JS stretches the div, the CSS sways the SVG!
+          const treeHTML = `<div class="tree-wrapper" style="margin: 0 -4px; transform-origin: bottom center; transform: scaleY(0);">
+            <svg width="24" height="${30 + hOffset}" viewBox="0 0 24 ${30 + hOffset}" xmlns="http://www.w3.org/2000/svg" class="tree-svg">
+              <rect x="11" y="${18 + hOffset}" width="3" height="12" fill="#8A6F4D"/>
+              <polygon points="12.5,0 24,${18 + hOffset} 1,${18 + hOffset}" fill="${color}"/>
+            </svg>
+          </div>`;
+          
+          forest.insertAdjacentHTML('beforeend', treeHTML);
+      }
+
+      while (existingNodes.length > totalNodesNeeded) {
+          forest.removeChild(forest.lastChild);
+      }
+
+      for (let i = 0; i < existingNodes.length; i++) {
+          if (i === existingNodes.length - 1 && remainder > 0) {
+              // Stretch the wrapper vertically
+              existingNodes[i].style.transform = `scaleY(${Math.max(0.01, fractionalScale)})`;
+          } else {
+              existingNodes[i].style.transform = 'scaleY(1)';
+          }
+      }
+  }
+
+  // --- 2. ODOMETER ANIMATION FUNCTION ---
   function animateValue(obj, start, end) {
-    if (!obj) return;
+    if (!obj || start === end) return;
     
-    // If a previous roll-up animation is still running, stop it
     if (activeAnimationFrame) {
       window.cancelAnimationFrame(activeAnimationFrame);
       activeAnimationFrame = null;
     }
 
-    // Calculate how many trees we are adding
     const diff = end - start;
-    
-    // 400ms per tree so it rolls slowly. 
-    // Minimum 500 milliseconds, Maximum 3 seconds so it doesn't run forever on huge jumps.
     const duration = Math.min(Math.max(diff * 400, 500), 3000); 
 
     let startTimestamp = null;
+    
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
       
       const rawProgress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const progress = 1 - Math.pow(1 - rawProgress, 3); // Cubic ease-out
       
-      // Ease-out (cubic) so it slows down toward the end instead of stopping abruptly
-      const progress = 1 - Math.pow(1 - rawProgress, 3);
+      // 1. Calculate the exact FLOAT number for buttery smooth graphics
+      const currentNumFloat = progress * diff + start;
       
-      // Update the DOM safely with formatting
-      const currentNum = Math.floor(progress * diff + start);
-      obj.innerHTML = currentNum.toLocaleString('de-AT');
-      liveDisplayedValue = currentNum;
+      // 2. Calculate the INTEGER for the text display
+      const currentNumInt = Math.floor(currentNumFloat);
+      
+      obj.innerHTML = currentNumInt.toLocaleString('de-AT');
+      liveDisplayedValue = currentNumInt;
+      
+      // 3. Update graphics using the precise float!
+      updateForestVisuals(currentNumFloat, end);
       
       if (rawProgress < 1) {
         activeAnimationFrame = window.requestAnimationFrame(step);
       } else {
-        // Force exact end number just in case math rounds weirdly
+        // Snap everything cleanly to the exact end value on the last frame
         obj.innerHTML = end.toLocaleString('de-AT'); 
         liveDisplayedValue = end;
+        updateForestVisuals(end, end); 
         activeAnimationFrame = null;
       }
     };
@@ -56,8 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- LIVE API CALL: Fetch and Animate ---
   async function fetchLiveTreeCount() {
     try {
-      // Fixed: Added cache: 'no-store' to force fresh data
-      const response = await fetch(API_PATH, { cache: 'no-store' });
+      const response = await fetch('api/api.php', { cache: 'no-store' });
       if (!response.ok) throw new Error('API down');
       
       const data = await response.json();
@@ -151,23 +215,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     setTimeout(type, 500);
-  }
-
-  // --- 3. Kleiner SVG-Wald im Counter-Streifen ---
-  function renderSvgForest() {
-    const forest = document.getElementById('forest');
-    if (!forest) return; // Safety check
-    
-    const treeSVG = (h, color) => `<svg width="24" height="${30+h}" viewBox="0 0 24 ${30+h}" xmlns="http://www.w3.org/2000/svg">
-      <rect x="11" y="${18+h}" width="3" height="12" fill="#8A6F4D"/>
-      <polygon points="12.5,0 24,${18+h} 1,${18+h}" fill="${color}"/>
-    </svg>`;
-    let html = '';
-    const colors = ['#7FB069', '#A7C957', '#5E8B4C'];
-    for(let i = 0; i < 18; i++){ 
-      html += treeSVG(Math.random() * 15, colors[i % 3]); 
-    }
-    forest.innerHTML = html;
   }
 
   // --- Generate unique Tree ID ---
@@ -479,7 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Diese Funktionsaufrufe gehören zum DOMContentLoaded Lifecycle und müssen hier ausgeführt werden:
-  renderSvgForest();
+  
   typeWriter();
 
 });
