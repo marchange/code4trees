@@ -114,6 +114,7 @@ header {
   margin: 0 auto; 
   padding: 24px;
   animation: fadeInDown 0.8s ease forwards;
+  width: 100%;
 }
 
 .logo {
@@ -135,11 +136,24 @@ header {
 /* ---------- Navbar ---------- */
 
 nav a{
-  font-family:var(--mono);font-size:.85rem;color:var(--paper-dim);
-  text-decoration:none;margin-left:22px;
+  .nav a {
+    font-family: var(--mono);
+    font-size: .85rem;
+    color: var(--paper-dim);
+    text-decoration: none;
+    margin-left: 0; /* Margin-left mit sauberem flex-gap ersetzt */
+  }
+
 }
-nav a:hover{color:var(--leaf)}
-nav a.active{color:var(--leaf)}
+.nav a:hover,
+.nav a.active {
+  color: var(--leaf);
+}
+
+.nav {
+  display: flex;
+  gap: 22px;
+}
 
 /* ---------- Hero ---------- */
 .hero {
