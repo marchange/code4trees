@@ -107,6 +107,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById('floatingCodeContainer');
     if (!container) return; // Safety check
 
+    // Clear existing particles so they don't double up or freeze on back navigation
+    container.innerHTML = ''; 
+
     const symbols = ['{}', '</>', '[]', '()', '=>', '&&', '||', ';'];
     for (let i = 0; i < 15; i++) {
       const el = document.createElement('div');
@@ -119,6 +122,9 @@ document.addEventListener("DOMContentLoaded", () => {
       container.appendChild(el);
     }
   }
+
+  // Bind to pageshow so it fires even when returning via the back button
+  window.addEventListener('pageshow', generateAmbientCode);
 
   // --- 2. Typewriter Effect für H1 ---
   function typeWriter() {
@@ -473,7 +479,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Diese Funktionsaufrufe gehören zum DOMContentLoaded Lifecycle und müssen hier ausgeführt werden:
-  generateAmbientCode();
   renderSvgForest();
   typeWriter();
 
