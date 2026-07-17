@@ -14,6 +14,29 @@ header('Access-Control-Allow-Headers: Content-Type');
 session_start();
 
 require_once __DIR__ . '/db.php'; // stellt $pdo bereit (siehe db.php)
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
+function sendVerificationEmail(string $toEmail, string $username, string $token): void {
+    $resend = Resend::client($_ENV['RESEND_API_KEY']);
+
+    $verifyLink = "https://dev.code4trees.org/api/verify.php?token=" . urlencode($token);
+
+    $resend->emails->send([
+        'from' => 'code4trees <onboarding@dev.code4trees.org>',
+        'to' => [$toEmail],
+        'subject' => 'Bestätige deine E-Mail-Adresse — code4trees',
+        'html' => "
+            <p>Hallo {$username},</p>
+            <p>Danke für deine Registrierung bei code4trees! Bitte bestätige deine E-Mail-Adresse, um loszulegen:</p>
+            <p><a href=\"{$verifyLink}\">E-Mail-Adresse bestätigen</a></p>
+            <p>Dieser Link ist 24 Stunden gültig.</p>
+        "
+    ]);
+}
+
 
 // Preflight-Requests (falls Frontend jemals von anderer Origin läuft)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -49,14 +72,13 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
         }
-
+    
         $username   = trim((string)($_POST['username'] ?? ''));
         $email      = trim((string)($_POST['email'] ?? ''));
         $password   = (string)($_POST['password'] ?? '');
         $uniId      = (int)($_POST['university_id'] ?? 0);
         $facultyId  = (int)($_POST['faculty_id'] ?? 0);
-
-        // --- Validierung ---
+    
         if ($username === '' || $email === '' || $password === '' || $uniId <= 0 || $facultyId <= 0) {
             respond(400, ['status' => 'error', 'message' => 'Bitte alle Pflichtfelder ausfüllen.']);
         }
@@ -69,27 +91,34 @@ switch ($action) {
         if (strlen($password) < 8) {
             respond(400, ['status' => 'error', 'message' => 'Passwort muss mindestens 8 Zeichen lang sein.']);
         }
-
-        // Fakultät muss wirklich zur gewählten Uni gehören (Server-seitig prüfen,
-        // nicht blind aufs Frontend-Dropdown vertrauen).
+    
         $checkStmt = $pdo->prepare('SELECT id FROM faculties WHERE id = ? AND university_id = ?');
         $checkStmt->execute([$facultyId, $uniId]);
         if (!$checkStmt->fetch()) {
             respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
         }
-
+    
         $passwordHash = password_hash($password, PASSWORD_ARGON2ID);
-
+    
+        // Verifizierungs-Token: kryptographisch zufällig, 24h gültig.
+        $verificationToken = bin2hex(random_bytes(32));
+        $tokenExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+    
         try {
             $stmt = $pdo->prepare(
-                'INSERT INTO users (university_id, faculty_id, username, email, password_hash)
-                 VALUES (?, ?, ?, ?, ?)'
+                'INSERT INTO users (university_id, faculty_id, username, email, password_hash, email_verified, verification_token, verification_token_expires)
+                 VALUES (?, ?, ?, ?, ?, 0, ?, ?)'
             );
-            $stmt->execute([$uniId, $facultyId, $username, $email, $passwordHash]);
-
-            respond(201, ['status' => 'success', 'message' => 'Registrierung erfolgreich! Du kannst dich jetzt einloggen.']);
+            $stmt->execute([$uniId, $facultyId, $username, $email, $passwordHash, $verificationToken, $tokenExpires]);
+    
+            // Bestätigungsmail über Resend verschicken.
+            sendVerificationEmail($email, $username, $verificationToken);
+    
+            respond(201, [
+                'status' => 'success',
+                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben.'
+            ]);
         } catch (PDOException $e) {
-            // 23000 = Integrity constraint violation (z.B. UNIQUE auf username/email)
             if ($e->getCode() === '23000') {
                 respond(409, ['status' => 'error', 'message' => 'Nickname oder E-Mail ist bereits vergeben.']);
             }
@@ -106,32 +135,33 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
         }
-
+    
         $email    = trim((string)($_POST['email'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
-
+    
         if ($email === '' || $password === '') {
             respond(400, ['status' => 'error', 'message' => 'E-Mail und Passwort sind erforderlich.']);
         }
-
+    
         $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
         $stmt->execute([$email]);
         $user = $stmt->fetch();
-
-        // Bewusst dieselbe Fehlermeldung für "User existiert nicht" und
-        // "Passwort falsch" -- verhindert User-Enumeration.
+    
         if (!$user || !password_verify($password, $user['password_hash'])) {
             respond(401, ['status' => 'error', 'message' => 'E-Mail oder Passwort ist falsch.']);
         }
-
-        // Session-Fixation vermeiden: neue Session-ID nach erfolgreichem Login.
+    
+        if ((int)$user['email_verified'] !== 1) {
+            respond(403, ['status' => 'error', 'message' => 'Bitte bestätige zuerst deine E-Mail-Adresse. Schau in dein Postfach.']);
+        }
+    
         session_regenerate_id(true);
-
+    
         $_SESSION['user_id']       = (int)$user['id'];
         $_SESSION['username']      = $user['username'];
         $_SESSION['university_id'] = (int)$user['university_id'];
         $_SESSION['faculty_id']    = (int)$user['faculty_id'];
-
+    
         respond(200, [
             'status'  => 'success',
             'message' => 'Login erfolgreich!',
