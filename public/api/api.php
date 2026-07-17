@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-$data_dir = __DIR__ . '/../data';
+$data_dir = __DIR__ . '../data';
 $file = $data_dir . '/tree_count.txt';
 $rate_limit_file = $data_dir . '/rate_limits.json';
 $recordFile = $data_dir . '/records.json'; // Jetzt auch im Data-Ordner!
