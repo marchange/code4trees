@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registrieren — code4trees</title>
+<meta name="description" content="Erstelle deinen kostenlosen code4trees-Account und lass aus deinem Code echte Bäume wachsen.">
+
+<link rel="icon" type="image/jpeg" href="assets/icon.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+<script src="js/script.js"></script>
+<script src="js/auth.js"></script>
+</head>
+<body data-page="register">
+
+<div class="ambient-bg"></div>
+<div class="floating-code" id="floatingCodeContainer"></div>
+
+<header>
+  <a class="logo" href="index.html">
+    <span class="glyph">&#123;&#125;</span> code4trees
+  </a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="training.html">Code-Arena</a>
+    <a href="login.html" id="authNavBtn" class="auth-nav-btn">Login</a>
+  </nav>
+</header>
+
+<main>
+  <div class="auth-layout">
+    <div class="auth-pitch">
+      <div class="eyebrow">// Werde Teil des Waldes</div>
+      <h1>Dein Code verdient einen <em>Baum</em>.</h1>
+      <p class="lead">Erstelle einen kostenlosen Account, reiche deine Projekte ein und verfolge live, wie aus deinem Code echte Bäume wachsen.</p>
+      <div class="trust-points">
+        <div class="trust-point"><span class="glyph">🌳</span> Jedes verifizierte Projekt finanziert eine echte Baumpflanzung</div>
+        <div class="trust-point"><span class="glyph">🎓</span> Kostenlos für Studierende aller Universitäten</div>
+        <div class="trust-point"><span class="glyph">🔒</span> Deine Daten bleiben sicher und werden nicht weitergegeben</div>
+      </div>
+      <div class="mini-impact">
+        <span class="mini-impact-num" id="treeCount">0</span>
+        <span class="mini-impact-label">Bäume bereits gepflanzt</span>
+      </div>
+    </div>
+
+    <div class="auth-card-wrapper">
+      <div class="form-card auth-card">
+        <h3>Registrieren</h3>
+
+        <div id="authMessage" class="auth-message" style="display:none;"></div>
+
+        <form id="registerForm" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="regUsername">Nickname</label>
+              <input type="text" id="regUsername" name="username" required minlength="3" maxlength="50" placeholder="z.B. code_ninja">
+            </div>
+            <div class="field">
+              <label for="regEmail">E-Mail</label>
+              <input type="email" id="regEmail" name="email" required placeholder="du@uni.ac.at">
+            </div>
+            <div class="field field-full">
+              <label for="regPassword">Passwort</label>
+              <input type="password" id="regPassword" name="password" required minlength="8" placeholder="Mind. 8 Zeichen">
+            </div>
+            <div class="field">
+              <label for="regUniversity">Universität</label>
+              <select id="regUniversity" name="university_id" required>
+                <option value="" disabled selected>Universität wählen…</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="regFaculty">Fakultät</label>
+              <select id="regFaculty" name="faculty_id" required disabled>
+                <option value="" disabled selected>Zuerst Universität wählen</option>
+              </select>
+            </div>
+
+            <!-- Honeypot-Feld: für Menschen unsichtbar, Bots füllen es meist blind aus -->
+            <div class="field hp-field" aria-hidden="true">
+              <label for="regWebsite">Website</label>
+              <input type="text" id="regWebsite" name="website" tabindex="-1" autocomplete="off">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width:100%;">Registrieren</button>
+        </form>
+
+        <p class="auth-switch">Schon registriert? <a href="login.html">Zum Login</a></p>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <span>© 2026 code4trees.org – Gamified Education.</span>
+      <a href="./impressum.html">Impressum</a>
+      <span class="separator">|</span>
+      <a href="./datenschutz.html">Datenschutz</a>
+    </div>
+    <div class="footer-right">
+      <span>Made by Students, for Students 💚</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

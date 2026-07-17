@@ -6,14 +6,12 @@
 declare(strict_types=1);
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
 
 // Sessions müssen VOR jedem Output gestartet werden.
 session_start();
 
 require_once __DIR__ . '/db.php'; // stellt $pdo bereit (siehe db.php)
+require_once __DIR__ . '/rate_limit.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
@@ -37,12 +35,6 @@ function sendVerificationEmail(string $toEmail, string $username, string $token)
     ]);
 }
 
-
-// Preflight-Requests (falls Frontend jemals von anderer Origin läuft)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 $action = $_GET['action'] ?? '';
 
@@ -72,7 +64,23 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
         }
-    
+
+        if (!checkRateLimit($pdo, 'register', 5, 15)) {
+            respond(429, ['status' => 'error', 'message' => 'Zu viele Registrierungsversuche. Bitte in ein paar Minuten erneut versuchen.']);
+        }
+
+        // Honeypot: für Menschen unsichtbares Feld (per CSS versteckt). Echte Nutzer
+        // lassen es leer, Bots füllen es aus. Bot bekommt eine "erfolgreiche"
+        // Antwort, ohne dass tatsächlich etwas in der DB passiert.
+        $honeypot = trim((string)($_POST['website'] ?? ''));
+        if ($honeypot !== '') {
+            error_log('Honeypot getriggert bei Registrierung, IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            respond(201, [
+                'status' => 'success',
+                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben.'
+            ]);
+        }
+
         $username   = trim((string)($_POST['username'] ?? ''));
         $email      = trim((string)($_POST['email'] ?? ''));
         $password   = (string)($_POST['password'] ?? '');
@@ -110,14 +118,20 @@ switch ($action) {
                  VALUES (?, ?, ?, ?, ?, 0, ?, ?)'
             );
             $stmt->execute([$uniId, $facultyId, $username, $email, $passwordHash, $verificationToken, $tokenExpires]);
-    
-            // Bestätigungsmail über Resend verschicken.
-            sendVerificationEmail($email, $username, $verificationToken);
-    
-            respond(201, [
+
+            http_response_code(201);
+            echo json_encode([
                 'status' => 'success',
-                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben.'
-            ]);
+                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse.'
+            ], JSON_UNESCAPED_UNICODE);
+            
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            
+            sendVerificationEmail($email, $username, $verificationToken);
+            exit;
+            
         } catch (PDOException $e) {
             if ($e->getCode() === '23000') {
                 respond(409, ['status' => 'error', 'message' => 'Nickname oder E-Mail ist bereits vergeben.']);
@@ -135,7 +149,11 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
         }
-    
+
+        if (!checkRateLimit($pdo, 'login', 10, 15)) {
+            respond(429, ['status' => 'error', 'message' => 'Zu viele Login-Versuche. Bitte in ein paar Minuten erneut versuchen.']);
+        }
+
         $email    = trim((string)($_POST['email'] ?? ''));
         $password = (string)($_POST['password'] ?? '');
     
