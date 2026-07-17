@@ -14,9 +14,9 @@ header('Access-Control-Allow-Headers: Content-Type');
 session_start();
 
 require_once __DIR__ . '/db.php'; // stellt $pdo bereit (siehe db.php)
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
 $dotenv->load();
 
 function sendVerificationEmail(string $toEmail, string $username, string $token): void {
