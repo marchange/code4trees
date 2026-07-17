@@ -37,9 +37,31 @@
     <a href="index.html" class="active">Dashboard</a>
     <a href="training.html">Code-Arena</a>
     <a href="#einreichen">Einreichen</a>
-    <button type="button" id="authNavBtn" class="auth-nav-btn">Login / Registrieren</button>
+    <div class="auth-nav-wrapper" id="authNavWrapper">
+      <button type="button" id="authNavBtn" class="auth-nav-btn">Login / Registrieren</button>
+      <div class="auth-dropdown" id="authDropdown" hidden>
+        <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
+        <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
+      </div>
+    </div>
   </nav>
 </header>
+
+<style>
+  .auth-nav-wrapper{position:relative;display:inline-block;}
+  .auth-dropdown{
+    position:absolute; right:0; top:calc(100% + 8px); min-width:190px;
+    background:var(--pine-950,#0f1f16); border:1px solid rgba(127,176,105,0.35);
+    border-radius:10px; padding:6px; box-shadow:0 12px 28px rgba(0,0,0,0.35); z-index:50;
+  }
+  .auth-dropdown-item{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+    background:none; border:none; color:#fff; font:inherit; font-size:0.92rem;
+    padding:9px 10px; border-radius:6px; cursor:pointer; text-decoration:none;
+  }
+  .auth-dropdown-item:hover{background:rgba(127,176,105,0.18);}
+  .auth-dropdown-item--danger:hover{background:rgba(255,95,86,0.18); color:#FF8A82;}
+</style>
 
 <main>
   <div class="hero">
@@ -208,40 +230,6 @@
       </form>
       <p class="auth-switch">Noch kein Konto? <a href="#" id="toRegisterLink">Jetzt registrieren</a></p>
     </div>
-
-    <!-- REGISTER STATE -->
-    <div id="registerState" style="display:none;">
-      <h3>Registrieren</h3>
-      <form id="registerForm" novalidate>
-        <div class="field">
-          <label for="regUsername">Nickname</label>
-          <input type="text" id="regUsername" name="username" required minlength="3" maxlength="50" placeholder="z.B. code_ninja">
-        </div>
-        <div class="field">
-          <label for="regEmail">E-Mail</label>
-          <input type="email" id="regEmail" name="email" required placeholder="du@uni.ac.at">
-        </div>
-        <div class="field">
-          <label for="regPassword">Passwort</label>
-          <input type="password" id="regPassword" name="password" required minlength="8" placeholder="Mind. 8 Zeichen">
-        </div>
-        <div class="field">
-          <label for="regUniversity">Universität</label>
-          <select id="regUniversity" name="university_id" required>
-            <option value="" disabled selected>Universität wählen…</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="regFaculty">Fakultät</label>
-          <select id="regFaculty" name="faculty_id" required disabled>
-            <option value="" disabled selected>Zuerst Universität wählen</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">Registrieren</button>
-      </form>
-      <p class="auth-switch">Schon registriert? <a href="#" id="toLoginLink">Zum Login</a></p>
-    </div>
-  </div>
 </div>
 
 </body>

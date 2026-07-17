@@ -7,9 +7,12 @@ const SETUP_DATA_PATH = 'api/get_setup_data.php';
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  const authNavBtn  = document.getElementById('authNavBtn');
-  const authMessage = document.getElementById('authMessage');
-  const currentPage = document.body.dataset.page || 'home'; // 'home' | 'login' | 'register'
+  const authNavBtn     = document.getElementById('authNavBtn');
+  const authNavWrapper = document.getElementById('authNavWrapper');
+  const authDropdown   = document.getElementById('authDropdown');
+  const logoutBtn      = document.getElementById('logoutBtn');
+  const authMessage    = document.getElementById('authMessage');
+  const currentPage    = document.body.dataset.page || 'home'; // 'home' | 'login' | 'register' | 'profile'
 
   // =====================================================================
   // --- Auth-Message Helper (auf allen Seiten identisch gestylt) ---
@@ -51,23 +54,50 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (authNavBtn) {
-      authNavBtn.textContent = `👤 ${user.username} · Logout`;
-      authNavBtn.setAttribute('href', '#');
+      authNavBtn.textContent = `👤 ${user.username} ▾`;
+      authNavBtn.removeAttribute('href');
       authNavBtn.dataset.loggedIn = 'true';
     }
   }
 
-  // Logout-Klick auf den Header-Button, nur wenn gerade eingeloggt.
+  // =====================================================================
+  // --- Logout (zentral, wiederverwendbar) ---
+  // =====================================================================
+
+  async function logoutUser() {
+    if (logoutBtn) {
+      logoutBtn.disabled = true;
+      logoutBtn.textContent = '🚪 Logge aus…';
+    }
+    try {
+      await fetch(`${AUTH_API_PATH}?action=logout`, { method: 'POST' });
+    } catch (error) {
+      console.error('Logout fehlgeschlagen:', error);
+    }
+    window.location.href = 'index.html';
+  }
+
+  // Dropdown öffnen/schließen: Klick auf den Nav-Button togglet nur, wenn eingeloggt.
+  // Ist niemand eingeloggt, läuft der Button/Link ganz normal weiter (Modal öffnen bzw. zu login.html/registrieren.html navigieren).
   if (authNavBtn) {
-    authNavBtn.addEventListener('click', async (e) => {
-      if (authNavBtn.dataset.loggedIn !== 'true') return; // normale Navigation zu login.html
+    authNavBtn.addEventListener('click', (e) => {
+      if (authNavBtn.dataset.loggedIn !== 'true') return;
       e.preventDefault();
-      try {
-        await fetch(`${AUTH_API_PATH}?action=logout`, { method: 'POST' });
-      } catch (error) {
-        console.error('Logout fehlgeschlagen:', error);
-      }
-      window.location.href = 'index.html';
+      const isOpen = authDropdown && !authDropdown.hidden;
+      if (authDropdown) authDropdown.hidden = isOpen;
+    });
+  }
+
+  // Klick außerhalb schließt das Dropdown.
+  document.addEventListener('click', (e) => {
+    if (!authNavWrapper || !authDropdown || authDropdown.hidden) return;
+    if (!authNavWrapper.contains(e.target)) authDropdown.hidden = true;
+  });
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      logoutUser();
     });
   }
 
@@ -280,5 +310,208 @@ document.addEventListener('DOMContentLoaded', () => {
         setAuthBusy(loginForm, false, 'Anmeldung läuft…', 'Einloggen');
       }
     });
+  }
+
+  // =====================================================================
+  // --- Profilseite (profil.html) ---
+  // Nicht eingeloggte Nutzer werden zum Login geschickt. Eingeloggte Nutzer
+  // bekommen ihre aktuellen Daten vorausgefüllt und können sie ändern.
+  // =====================================================================
+
+  if (currentPage === 'profile') {
+    const profileForm     = document.getElementById('profileForm');
+    const passwordForm     = document.getElementById('passwordForm');
+    const profileUniversitySelect = document.getElementById('profileUniversity');
+    const profileFacultySelect    = document.getElementById('profileFaculty');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+    async function loadProfile() {
+      try {
+        const response = await fetch(`${AUTH_API_PATH}?action=me`, { cache: 'no-store' });
+        const data = await response.json();
+
+        if (!response.ok || data.status !== 'success' || !data.loggedIn) {
+          const target = encodeURIComponent('profil.html');
+          window.location.href = `login.html?redirect=${target}`;
+          return;
+        }
+
+        applyLoggedInUser(data.user);
+        fillProfileForm(data.user);
+      } catch (error) {
+        console.error('Profil konnte nicht geladen werden:', error);
+        showAuthMessage('Profil konnte nicht geladen werden. Bitte Seite neu laden.', true);
+      }
+    }
+
+    function fillProfileForm(user) {
+      if (!profileForm) return;
+      const usernameField = document.getElementById('profileUsername');
+      const emailField     = document.getElementById('profileEmail');
+      const treeCountField = document.getElementById('profileTreeCount');
+
+      if (usernameField) usernameField.value = user.username || '';
+      if (emailField)     emailField.value = user.email || '';
+      if (treeCountField) treeCountField.textContent = user.tree_count ?? '0';
+
+      // Uni/Fakultät-Dropdowns mit denselben Stammdaten füllen wie bei der Registrierung.
+      if (profileUniversitySelect) {
+        loadSetupDataForProfile().then(() => {
+          if (user.university_id) {
+            profileUniversitySelect.value = user.university_id;
+            populateFacultyDropdownGeneric(profileFacultySelect, user.university_id);
+            if (profileFacultySelect && user.faculty_id) {
+              profileFacultySelect.value = user.faculty_id;
+            }
+          }
+        });
+      }
+    }
+
+    // Stammdaten laden (falls noch nicht über die Registrierung geladen) und Uni-Dropdown füllen.
+    async function loadSetupDataForProfile() {
+      if (!setupDataCache) {
+        try {
+          const response = await fetch(SETUP_DATA_PATH, { cache: 'no-store' });
+          const data = await response.json();
+          setupDataCache = { universities: data.universities || [], faculties: data.faculties || [] };
+        } catch (error) {
+          console.error('Stammdaten für Profil konnten nicht geladen werden:', error);
+          return;
+        }
+      }
+      if (profileUniversitySelect) {
+        profileUniversitySelect.innerHTML = '<option value="" disabled>Universität wählen…</option>';
+        setupDataCache.universities.forEach(uni => {
+          const opt = document.createElement('option');
+          opt.value = uni.id;
+          opt.textContent = uni.name;
+          profileUniversitySelect.appendChild(opt);
+        });
+      }
+    }
+
+    function populateFacultyDropdownGeneric(selectEl, universityId) {
+      if (!selectEl || !setupDataCache) return;
+      const filtered = setupDataCache.faculties.filter(f => String(f.university_id) === String(universityId));
+      selectEl.innerHTML = filtered.length
+        ? '<option value="" disabled>Fakultät wählen…</option>'
+        : '<option value="" disabled>Keine Fakultäten gefunden</option>';
+      filtered.forEach(fac => {
+        const opt = document.createElement('option');
+        opt.value = fac.id;
+        opt.textContent = fac.name;
+        selectEl.appendChild(opt);
+      });
+      selectEl.disabled = filtered.length === 0;
+    }
+
+    if (profileUniversitySelect) {
+      profileUniversitySelect.addEventListener('change', (e) => {
+        populateFacultyDropdownGeneric(profileFacultySelect, e.target.value);
+      });
+    }
+
+    // Stammdaten speichern (Nickname, E-Mail, Uni, Fakultät).
+    if (profileForm) {
+      profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAuthMessage();
+
+        if (!profileForm.checkValidity()) {
+          profileForm.reportValidity();
+          return;
+        }
+
+        setAuthBusy(profileForm, true, 'Speichere…', 'Änderungen speichern');
+
+        try {
+          const formData = new FormData(profileForm);
+          const response = await fetch(`${AUTH_API_PATH}?action=update_profile`, {
+            method: 'POST',
+            body: formData
+          });
+          const data = await response.json();
+
+          if (response.ok && data.status === 'success') {
+            showAuthMessage(data.message || 'Profil aktualisiert!');
+            if (data.user) applyLoggedInUser(data.user);
+          } else {
+            showAuthMessage(data.message || 'Profil konnte nicht gespeichert werden.', true);
+          }
+        } catch (error) {
+          console.error('Profil-Update fehlgeschlagen:', error);
+          showAuthMessage('Verbindungsfehler. Bitte später erneut versuchen.', true);
+        } finally {
+          setAuthBusy(profileForm, false, 'Speichere…', 'Änderungen speichern');
+        }
+      });
+    }
+
+    // Passwort ändern (separates Formular, eigener Endpoint).
+    if (passwordForm) {
+      passwordForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        clearAuthMessage();
+
+        if (!passwordForm.checkValidity()) {
+          passwordForm.reportValidity();
+          return;
+        }
+
+        const newPw = passwordForm.querySelector('[name="new_password"]').value;
+        const repeatPw = passwordForm.querySelector('[name="new_password_repeat"]').value;
+        if (newPw !== repeatPw) {
+          showAuthMessage('Die neuen Passwörter stimmen nicht überein.', true);
+          return;
+        }
+
+        setAuthBusy(passwordForm, true, 'Ändere Passwort…', 'Passwort ändern');
+
+        try {
+          const formData = new FormData(passwordForm);
+          const response = await fetch(`${AUTH_API_PATH}?action=update_password`, {
+            method: 'POST',
+            body: formData
+          });
+          const data = await response.json();
+
+          if (response.ok && data.status === 'success') {
+            showAuthMessage(data.message || 'Passwort erfolgreich geändert!');
+            passwordForm.reset();
+          } else {
+            showAuthMessage(data.message || 'Passwort konnte nicht geändert werden.', true);
+          }
+        } catch (error) {
+          console.error('Passwort-Update fehlgeschlagen:', error);
+          showAuthMessage('Verbindungsfehler. Bitte später erneut versuchen.', true);
+        } finally {
+          setAuthBusy(passwordForm, false, 'Ändere Passwort…', 'Passwort ändern');
+        }
+      });
+    }
+
+    // Account löschen — fragt vorher nach, ruft dann den Endpoint auf.
+    if (deleteAccountBtn) {
+      deleteAccountBtn.addEventListener('click', async () => {
+        const sure = window.confirm('Account wirklich unwiderruflich löschen? Dein digitaler Wald bleibt, dein Zugang geht verloren.');
+        if (!sure) return;
+
+        try {
+          const response = await fetch(`${AUTH_API_PATH}?action=delete_account`, { method: 'POST' });
+          const data = await response.json();
+          if (response.ok && data.status === 'success') {
+            window.location.href = 'index.html';
+          } else {
+            showAuthMessage(data.message || 'Account konnte nicht gelöscht werden.', true);
+          }
+        } catch (error) {
+          console.error('Account-Löschung fehlgeschlagen:', error);
+          showAuthMessage('Verbindungsfehler. Bitte später erneut versuchen.', true);
+        }
+      });
+    }
+
+    loadProfile();
   }
 });
