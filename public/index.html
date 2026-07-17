@@ -125,8 +125,29 @@
             <span class="copy-text">Kopieren</span>
           </button>
         </div>
+
+        <!-- NEU: Der PDF Download Button -->
+        <button type="button" class="btn btn-primary" id="downloadCertBtn" style="width: 100%; margin-top: 15px; margin-bottom: 15px; background: var(--sun); color: var(--pine-950);">
+          📄 Zertifikat als PDF herunterladen
+        </button>
         
         <p style="font-size: 0.9rem; margin-bottom: 0;">Teile diese ID in den sozialen Medien, um deinen Beitrag zum Klimaschutz zu zeigen!</p>
+      </div>
+
+      <!-- UNSICHTBARES TEMPLATE FÜR DAS PDF -->
+      <div style="display: none;">
+        <div id="pdfTemplate" style="padding: 50px; background: #050a07; color: #EAF0E4; font-family: 'IBM Plex Sans', sans-serif; border: 10px solid #A7C957; text-align: center; width: 800px;">
+          <div style="color: #A7C957; font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-bottom: 30px;">// {code4trees} — CERTIFICATE OF IMPACT</div>
+          <h1 style="color: #EAF0E4; font-family: 'Bricolage Grotesque', sans-serif; font-size: 36px; margin-bottom: 20px;">Urkunde über nachhaltigen Code</h1>
+          <p style="font-size: 18px; color: #B8C6B0; margin-bottom: 40px; line-height: 1.6;">
+            Hiermit wird bestätigt, dass <strong id="pdfName" style="color: #EAF0E4;">[Name]</strong> das Projekt <strong id="pdfProject" style="color: #A7C957;">[Projekt]</strong> erfolgreich verifiziert hat. 
+            Dieser Code hat die Qualitätserwartungen erfüllt und finanziert die Pflanzung von 1 echten Baum im code4trees-Campuswald.
+          </p>
+          <div style="margin-top: 50px; border-top: 1px dashed #1C3324; padding-top: 30px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 16px; color: #E8C547; background: #14251A; padding: 10px 20px; border-radius: 6px;" id="pdfTreeId">TREE-XXXX</span>
+          </div>
+          <div style="margin-top: 40px; font-size: 12px; color: #B8C6B0;">Verifiziert im Jahr 2026 — code4trees.org</div>
+        </div>
       </div>
 
       <div class="form-grid">
