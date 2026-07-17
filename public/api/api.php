@@ -76,47 +76,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' || isset($_GET['add'])) {
 $fp = fopen($file, 'c+');
 if ($fp && flock($fp, LOCK_EX)) {
     $count = (int)stream_get_contents($fp);
+    
+    $responseData = [];
+
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         sleep(2); // KI-Prüfung simulieren
         $count += 1; 
+
+        $treeId = "TREE-" . strtoupper(bin2hex(random_bytes(4))) . "-" . strtoupper(bin2hex(random_bytes(3)));
+        $existingRecords = [];
+        
+        if (file_exists($recordFile)) {
+            $fileData = file_get_contents($recordFile);
+            $existingRecords = json_decode($fileData, true) ?? [];
+        }
+        
+        $userName = isset($_POST['name']) ? htmlspecialchars($_POST['name'], ENT_QUOTES, 'UTF-8') : 'Anonymous';
+        $projectName = isset($_POST['project']) ? htmlspecialchars($_POST['project'], ENT_QUOTES, 'UTF-8') : 'Project';
+        
+        $newRecord = [
+            'tree_id' => $treeId,
+            'name'    => $userName,
+            'project' => $projectName,
+            'date'    => date('Y-m-d H:i:s')
+        ];
+        
+        $existingRecords[] = $newRecord;
+        file_put_contents($recordFile, json_encode($existingRecords, JSON_PRETTY_PRINT));
+
+        // Full response including the Tree ID for the frontend success state
+        $responseData = [
+            "status" => "success", 
+            "success" => true,
+            "message" => "Project validated! Tree planted.",
+            "trees" => $count,
+            "newCount" => $count,
+            "treeId" => $treeId
+        ];
+
     } elseif (isset($_GET['add'])) {
         $count += (int)$_GET['add'];
+        
+        // Simple response for background increments
+        $responseData = [
+            "status" => "success", 
+            "success" => true,
+            "trees" => $count,
+            "newCount" => $count
+        ];
     }
+
     ftruncate($fp, 0);
     rewind($fp);
     fwrite($fp, (string)$count);
     fflush($fp);
+    
     flock($fp, LOCK_UN);
     fclose($fp);
 
-    // --- DATA PERSISTENCE (Issue #11) ---
-    $treeId = "TREE-" . strtoupper(bin2hex(random_bytes(4))) . "-" . strtoupper(bin2hex(random_bytes(3)));
-    $existingRecords = [];
-    if (file_exists($recordFile)) {
-        $fileData = file_get_contents($recordFile);
-        $existingRecords = json_decode($fileData, true) ?? [];
-    }
-    
-    $userName = isset($_REQUEST['name']) ? htmlspecialchars($_REQUEST['name'], ENT_QUOTES, 'UTF-8') : 'Anonymous';
-    $projectName = isset($_REQUEST['project']) ? htmlspecialchars($_REQUEST['project'], ENT_QUOTES, 'UTF-8') : 'Project';
-    
-    $newRecord = [
-        'tree_id' => $treeId,
-        'name'    => $userName,
-        'project' => $projectName,
-        'date'    => date('Y-m-d H:i:s')
-    ];
-    $existingRecords[] = $newRecord;
-    file_put_contents($recordFile, json_encode($existingRecords, JSON_PRETTY_PRINT));
-
-    echo json_encode([
-        "status" => "success", 
-        "success" => true,
-        "message" => "Project validated! Tree planted.",
-        "trees" => $count,
-        "newCount" => $count,
-        "treeId" => $treeId
-    ]);
+    echo json_encode($responseData);
     exit;
 }
 echo json_encode(["status" => "error", "message" => "Server Dateisystem gesperrt."]);
