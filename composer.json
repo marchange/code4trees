@@ -1,6 +1,7 @@
 {
     "require": {
         "dompdf/dompdf": "*",
-        "vlucas/phpdotenv": "^5.6"
+        "vlucas/phpdotenv": "^5.6",
+        "resend/resend-php": "^1.5"
     }
 }
