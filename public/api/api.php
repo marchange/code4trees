@@ -2,8 +2,8 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
-$file = '../../data/tree_count.txt';
-$rate_limit_file = '../../data/rate_limits.json';
+$file = '../data/tree_count.txt';
+$rate_limit_file = '../data/rate_limits.json';
 $count = 0; 
 
 // Rate limiting configuration
