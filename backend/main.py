@@ -36,7 +36,7 @@ TREE_COUNT_FILE = DATA_DIR / "tree_count.txt"
 RECORDS_FILE = DATA_DIR / "records.json"
 GHOST_GROWTH_FILE = DATA_DIR / "ghost_growth.txt"
 
-MAX_REQUESTS_PER_HOUR = 10          # Max. Schreib-Requests pro IP pro Stunde (danke alex)
+MAX_REQUESTS_PER_HOUR = 100         # Max. Schreib-Requests pro IP pro Stunde (danke alex) — Issue #39: zurück auf den ursprünglichen Wert aus dem alten api.php (war versehentlich auf 10 reduziert worden)
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB wie im Frontend
 
 # Startwert für die Pilotphase (Issue #34: "lets start from 200")
@@ -57,8 +57,14 @@ VALID_PROJECT_SUFFIXES = (
     ".java", ".cpp", ".c", ".cs", ".json",
 )
 
-# In Produktion auf die echte(n) Frontend-Domain(s) einschränken!
-ALLOWED_ORIGINS = ["*"]
+# Echte Frontend-Domains + lokaler Vite-Dev-Server. Kein Wildcard mehr (siehe
+# CLAUDE.md/Issue-Historie: "*" war nur ein Platzhalter für die frühe Entwicklung).
+ALLOWED_ORIGINS = [
+    "https://code4trees.org",
+    "https://testing.code4trees.org",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 
 # --------------------------------------------------------------------------
 # App & State

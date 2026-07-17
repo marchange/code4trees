@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /certificate/
+
+Sitemap: https://code4trees.org/sitemap.xml
