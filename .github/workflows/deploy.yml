@@ -30,7 +30,7 @@ jobs:
       env:
         # Produktions-API-URL als GitHub-Secret hinterlegen,
         # z.B. https://api.code4trees.org/api
-        VITE_API_BASE: ${{ secrets.VITE_API_BASE }}
+        VITE_API_BASE: https://api.code4trees.org/api
 
     - name: 📂 Mirror files via SFTP
       uses: pressidium/lftp-mirror-action@v1
