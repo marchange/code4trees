@@ -123,11 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authDropdown) authDropdown.hidden = isOpen;
         return;
       }
-      if (authModal) {
-        e.preventDefault();
-        openAuthModal();
-      }
-      // sonst: normale Navigation (login.html / registrieren.html)
+  
+      window.location.href = 'registrieren.html';
     });
   }
 

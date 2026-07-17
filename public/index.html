@@ -39,7 +39,9 @@
     <a href="training.html">Code-Arena</a>
     <a href="#einreichen">Einreichen</a>
     <div class="auth-nav-wrapper" id="authNavWrapper">
-      <button type="button" id="authNavBtn" class="auth-nav-btn">Login / Registrieren</button>
+      <a href="registrieren.html" id="authNavBtn" class="auth-nav-btn">
+        Login / Registrieren
+    </a>
       <div class="auth-dropdown" id="authDropdown" hidden>
         <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
         <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
@@ -207,31 +209,5 @@
     </div>
   </div>
 </footer>
-
-<!-- AUTH MODAL: Login / Registrierung -->
-<div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-hidden="true" style="display:none;">
-  <div class="auth-modal-card">
-    <button type="button" class="auth-modal-close" id="closeAuthBtn" aria-label="Schließen">&times;</button>
-
-    <div id="authMessage" class="auth-message" style="display:none;"></div>
-
-    <!-- LOGIN STATE -->
-    <div id="loginState">
-      <h3 id="authModalTitle">Einloggen</h3>
-      <form id="loginForm" novalidate>
-        <div class="field">
-          <label for="loginEmail">E-Mail</label>
-          <input type="email" id="loginEmail" name="email" required placeholder="du@uni.ac.at">
-        </div>
-        <div class="field">
-          <label for="loginPassword">Passwort</label>
-          <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%;">Einloggen</button>
-      </form>
-      <p class="auth-switch">Noch kein Konto? <a href="registrieren.html" id="toRegisterLink">Jetzt registrieren</a></p>
-    </div>
-</div>
-
 </body>
 </html>
