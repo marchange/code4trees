@@ -1,5 +1,6 @@
 {
     "require": {
-        "dompdf/dompdf": "*"
+        "dompdf/dompdf": "*",
+        "vlucas/phpdotenv": "^5.6"
     }
 }
