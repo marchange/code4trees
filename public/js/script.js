@@ -541,12 +541,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (downloadCertBtn) {
     downloadCertBtn.addEventListener('click', () => {
-      // Werte dynamisch aus den Inputs und der generierten Server-ID ziehen
+      // Werte dynamisch aus den Feldern holen
       const userName = document.getElementById('name').value || 'Developer';
       const projectName = document.getElementById('project').value || 'Code-Projekt';
-      const finalTreeId = document.querySelector('#treeIdValue').textContent;
+      
+      // CRITICAL FIX: Holt die echte, einzigartige ID, die im successState gerendert wurde!
+      const finalTreeId = document.getElementById('treeIdValue').textContent;
 
-      // Daten in das unsichtbare HTML-Template injizieren
+      // Daten ins unsichtbare HTML-Template injizieren, bevor html2pdf es abgreift
       document.getElementById('pdfName').textContent = userName;
       document.getElementById('pdfProject').textContent = projectName;
       document.getElementById('pdfTreeId').textContent = finalTreeId;
@@ -554,23 +556,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const element = document.getElementById('pdfTemplate');
       const opt = {
         margin:       0,
-        filename:     `code4trees-Certificate-${finalTreeId}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07' },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+        filename:     `code4trees-Zertifikat-${finalTreeId}.pdf`,
+        image:        { type: 'jpeg', quality: 1.0 },
+        // Passt das html2canvas Rendering exakt an die Maße unseres Designs an
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07', width: 1050, height: 740 },
+        jsPDF:        { unit: 'pt', format: [1050, 740], orientation: 'landscape' }
       };
 
-      // Sichtbar machen, damit html2pdf es im DOM greifen kann
+      // Sichtbar schalten fürs System
       element.parentElement.style.display = 'block';
       
       html2pdf().set(opt).from(element).save().then(() => {
-        // Danach sofort wieder verstecken
+        // Direkt danach wieder unsichtbar machen
         element.parentElement.style.display = 'none';
       });
     });
   }
 
-  // Diese Funktionsaufrufe gehören zum DOMContentLoaded Lifecycle und müssen hier ausgeführt werden:
   typeWriter();
 
 });
