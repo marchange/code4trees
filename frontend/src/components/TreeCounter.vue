@@ -4,7 +4,7 @@ import { useTrees } from '../composables/useTrees'
 
 const FETCH_INTERVAL_MS = 10000 // Zähler alle 10 Sekunden aktualisieren
 
-const { targetCount, fetchLiveTreeCount } = useTrees()
+const { targetCount, apiError, fetchLiveTreeCount } = useTrees()
 
 const treeCountEl = ref(null)
 const forestEl = ref(null)
@@ -183,5 +183,10 @@ onBeforeUnmount(() => {
       </div>
       <div class="forest" ref="forestEl" aria-hidden="true"></div>
     </div>
+    <p v-if="apiError" class="counter-offline-hint" role="status">
+      ⚠️ {{ targetCount < 0
+        ? 'Zähler konnte nicht geladen werden. Verbindung zum Server wird erneut versucht...'
+        : 'Verbindung zum Server unterbrochen — zeige zuletzt bekannten Stand.' }}
+    </p>
   </div>
 </template>

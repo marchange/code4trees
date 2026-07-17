@@ -5,6 +5,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 // Globaler, geteilter Zustand (Composable-Singleton):
 // TreeCounter animiert auf targetCount, SubmitForm kann ihn nach Erfolg anheben.
 const targetCount = ref(-1) // -1 = noch nie geladen
+const apiError = ref(false) // true = letzter Fetch fehlgeschlagen (Backend down / Netzwerkfehler)
 
 async function fetchLiveTreeCount() {
   try {
@@ -14,8 +15,10 @@ async function fetchLiveTreeCount() {
     if (typeof data.trees === 'number' && data.trees > targetCount.value) {
       targetCount.value = data.trees
     }
+    apiError.value = false
   } catch (error) {
     console.error('API error', error)
+    apiError.value = true
   }
 }
 
@@ -26,5 +29,5 @@ function setCount(n) {
 }
 
 export function useTrees() {
-  return { API_BASE, targetCount, fetchLiveTreeCount, setCount }
+  return { API_BASE, targetCount, apiError, fetchLiveTreeCount, setCount }
 }

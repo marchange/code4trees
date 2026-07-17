@@ -21,6 +21,7 @@ import time
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, File, Form, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,14 +34,21 @@ from fastapi.responses import JSONResponse
 DATA_DIR = Path(__file__).parent / "data"
 TREE_COUNT_FILE = DATA_DIR / "tree_count.txt"
 RECORDS_FILE = DATA_DIR / "records.json"
+GHOST_GROWTH_FILE = DATA_DIR / "ghost_growth.txt"
 
 MAX_REQUESTS_PER_HOUR = 10          # Max. Schreib-Requests pro IP pro Stunde (danke alex)
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB wie im Frontend
+
+# Startwert für die Pilotphase (Issue #34: "lets start from 200")
+INITIAL_TREE_COUNT = 200
 
 # Fake-Traffic (aus dem Frontend hierher verlagert)
 RANDOM_ADD_INTERVAL_S = 15   # alle 15 Sekunden ein Versuch
 RANDOM_ADD_SKIP_CHANCE = 0.2  # 20 % Chance auszusetzen → wirkt organischer
 RANDOM_ADD_MIN, RANDOM_ADD_MAX = 1, 7
+# Pilotphase: Ghost-Traffic darf insgesamt nur GHOST_GROWTH_CAP Bäume beisteuern,
+# danach pausiert der Background-Task (echte Submits zählen weiter normal). Siehe Issue #34.
+GHOST_GROWTH_CAP = 50
 
 # Dateiendungen, die ein Zip als "echtes Projekt" qualifizieren
 # (identisch zum Client-Check in SubmitForm.vue)
@@ -91,9 +99,11 @@ _rate_limits: dict[str, int] = {}
 def _ensure_data_files() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     if not TREE_COUNT_FILE.exists():
-        TREE_COUNT_FILE.write_text("0")
+        TREE_COUNT_FILE.write_text(str(INITIAL_TREE_COUNT))
     if not RECORDS_FILE.exists():
         RECORDS_FILE.write_text("[]")
+    if not GHOST_GROWTH_FILE.exists():
+        GHOST_GROWTH_FILE.write_text("0")
 
 
 def _read_count() -> int:
@@ -108,6 +118,18 @@ def _write_count(count: int) -> None:
     TREE_COUNT_FILE.write_text(str(count))
 
 
+def _read_ghost_growth() -> int:
+    try:
+        return int(GHOST_GROWTH_FILE.read_text().strip() or 0)
+    except (ValueError, OSError):
+        return 0
+
+
+def _write_ghost_growth(total: int) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    GHOST_GROWTH_FILE.write_text(str(total))
+
+
 def _append_record(record: dict) -> None:
     try:
         records = json.loads(RECORDS_FILE.read_text() or "[]")
@@ -116,6 +138,17 @@ def _append_record(record: dict) -> None:
     records.append(record)
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     RECORDS_FILE.write_text(json.dumps(records, indent=2, ensure_ascii=False))
+
+
+def _find_record(tree_id: str) -> Optional[dict]:
+    try:
+        records = json.loads(RECORDS_FILE.read_text() or "[]")
+    except (json.JSONDecodeError, OSError):
+        return None
+    for record in records:
+        if record.get("tree_id") == tree_id:
+            return record
+    return None
 
 
 # --------------------------------------------------------------------------
@@ -194,7 +227,12 @@ def _generate_tree_id() -> str:
 # --------------------------------------------------------------------------
 
 async def _random_growth_loop() -> None:
-    """Erhöht den Zähler in zufälligen Schritten — simuliert Live-Aktivität."""
+    """Erhöht den Zähler in zufälligen Schritten — simuliert Live-Aktivität.
+
+    Pilotphase (Issue #34): Ghost-Traffic darf insgesamt nur GHOST_GROWTH_CAP
+    Bäume beisteuern. Danach beendet sich der Task; echte Submits über
+    /api/submit erhöhen den Zähler weiterhin unabhängig davon.
+    """
     while True:
         await asyncio.sleep(RANDOM_ADD_INTERVAL_S)
 
@@ -202,9 +240,16 @@ async def _random_growth_loop() -> None:
         if random.random() < RANDOM_ADD_SKIP_CHANCE:
             continue
 
-        random_trees = random.randint(RANDOM_ADD_MIN, RANDOM_ADD_MAX)
         async with _state_lock:
+            ghost_total = _read_ghost_growth()
+            if ghost_total >= GHOST_GROWTH_CAP:
+                return  # Cap erreicht — Pilotphase-Ghost-Traffic ist ausgeschöpft
+
+            remaining = GHOST_GROWTH_CAP - ghost_total
+            random_trees = min(random.randint(RANDOM_ADD_MIN, RANDOM_ADD_MAX), remaining)
+
             _write_count(_read_count() + random_trees)
+            _write_ghost_growth(ghost_total + random_trees)
 
 
 
@@ -218,6 +263,21 @@ async def get_trees() -> dict:
     """Lese-Modus: nur den aktuellen Stand liefern (Pendant zu GET api.php)."""
     async with _state_lock:
         return {"trees": _read_count()}
+
+
+@app.get("/api/certificate/{tree_id}")
+async def get_certificate(tree_id: str):
+    """Erlaubt es, ein Zertifikat später erneut über seine Baum-ID abzurufen
+    (z.B. für einen dauerhaften Link), statt es nur einmalig nach dem Upload
+    verfügbar zu machen."""
+    async with _state_lock:
+        record = _find_record(tree_id)
+    if record is None:
+        return JSONResponse(
+            status_code=404,
+            content={"status": "error", "message": "Kein Zertifikat mit dieser Baum-ID gefunden."},
+        )
+    return {"status": "success", **record}
 
 
 @app.post("/api/submit")
@@ -262,14 +322,17 @@ async def submit_project(
 
     # --- Zähler erhöhen + Record speichern (atomar unter Lock) ---
     tree_id = _generate_tree_id()
+    submitted_name = name.strip()[:100] or "Anonymous"
+    submitted_project = project.strip()[:200] or "Project"
+    submitted_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     async with _state_lock:
         count = _read_count() + 1
         _write_count(count)
         _append_record({
             "tree_id": tree_id,
-            "name": name.strip()[:100] or "Anonymous",
-            "project": project.strip()[:200] or "Project",
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "name": submitted_name,
+            "project": submitted_project,
+            "date": submitted_date,
         })
 
     return {
@@ -278,4 +341,5 @@ async def submit_project(
         "trees": count,
         "newCount": count,
         "treeId": tree_id,
+        "date": submitted_date,
     }

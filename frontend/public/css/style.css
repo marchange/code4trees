@@ -1,3 +1,8 @@
+/* Kopie von src/assets/css/style.css für die statischen Rechtsseiten
+   (impressum.html/datenschutz.html), die außerhalb des Vue-Builds liegen
+   und dessen gehashte Bundle-Dateien nicht referenzieren können.
+   Bei Änderungen an src/assets/css/style.css diese Datei manuell nachziehen. */
+
 :root {
   --pine-950: #050a07;
   --pine-900: #0B1510;
@@ -650,24 +655,15 @@ h2 {
 }
 
 .step .tag {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  color: var(--leaf);
-  display: inline-block;
-  margin-bottom: 16px;
-  background: rgba(5, 10, 7, 0.5);
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-family: var(--mono); 
+  font-size: 0.8rem; 
+  color: var(--leaf); 
+  display: inline-block; 
+  margin-bottom: 16px; 
+  background: rgba(5, 10, 7, 0.5); 
+  padding: 4px 10px; 
+  border-radius: 6px; 
   border: 1px solid var(--pine-700);
-}
-
-.step p code {
-  font-family: var(--mono);
-  font-size: 0.85em;
-  color: var(--sun);
-  background: rgba(5, 10, 7, 0.5);
-  padding: 2px 6px;
-  border-radius: 4px;
 }
 
 .step h3 { 
@@ -1630,141 +1626,4 @@ footer {
 }
 
 
-}
-
-/* ---------- Certificate ---------- */
-.certificate-offscreen {
-  position: fixed;
-  top: 0;
-  left: -9999px;
-  pointer-events: none;
-}
-
-.btn-certificate {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  background: var(--sun);
-  color: var(--pine-950);
-  border: none;
-  border-radius: 8px;
-  padding: 14px 16px;
-  font-family: var(--mono);
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-bottom: 12px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(232, 197, 71, 0.35);
-}
-
-.btn-certificate:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(232, 197, 71, 0.45);
-}
-
-.btn-certificate:disabled {
-  opacity: 0.7;
-  cursor: default;
-}
-
-.certificate-card {
-  width: 800px;
-  max-width: 100%;
-  background: var(--pine-950);
-  padding: 16px;
-}
-
-.certificate-border {
-  border: 2px solid var(--leaf);
-  border-radius: var(--radius);
-  padding: 48px;
-  text-align: center;
-  background: var(--pine-950);
-  background-image:
-    radial-gradient(circle at 15% 15%, rgba(167, 201, 87, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(232, 197, 71, 0.1), transparent 40%);
-}
-
-.certificate-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-}
-
-.certificate-logo {
-  font-family: var(--mono);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--paper);
-}
-
-.certificate-eyebrow {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--leaf);
-}
-
-.certificate-tree {
-  margin: 0 auto 16px;
-  display: block;
-}
-
-.certificate-title {
-  font-family: var(--display);
-  font-size: 2.6rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--leaf);
-  margin-bottom: 20px;
-}
-
-.certificate-body {
-  font-size: 1.05rem;
-  line-height: 1.7;
-  color: var(--paper-dim);
-  max-width: 56ch;
-  margin: 0 auto 32px;
-}
-
-.certificate-body strong {
-  color: var(--paper);
-}
-
-.certificate-meta {
-  display: flex;
-  justify-content: center;
-  gap: 48px;
-  margin-bottom: 32px;
-}
-
-.certificate-meta-label {
-  display: block;
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--paper-dim);
-  margin-bottom: 6px;
-}
-
-.certificate-meta-value {
-  display: block;
-  font-family: var(--mono);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--sun);
-}
-
-.certificate-footer {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  color: var(--paper-dim);
-  border-top: 1px solid var(--pine-700);
-  padding-top: 20px;
 }

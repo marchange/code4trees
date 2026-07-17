@@ -10,6 +10,16 @@ const router = createRouter({
       name: 'arena',
       // Lazy-Loading: Arena-Code wird erst geladen, wenn die Seite besucht wird
       component: () => import('./views/ArenaView.vue')
+    },
+    {
+      path: '/about',
+      name: 'about',
+      component: () => import('./views/AboutView.vue')
+    },
+    {
+      path: '/certificate/:id',
+      name: 'certificate',
+      component: () => import('./views/CertificateView.vue')
     }
   ],
   scrollBehavior(to) {
