@@ -1,0 +1,9 @@
+# SPA-Fallback: alle nicht existierenden Pfade auf index.html umleiten,
+# damit Vue Router Deep-Links wie /arena funktionieren.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>
