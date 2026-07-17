@@ -1,4 +1,4 @@
-API_PATH = 'api/api.php'; // Define the API path as a constant
+const API_PATH = 'api/api.php'; // Define the API path as a constant
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeAnimationFrame = null;
   let liveDisplayedValue = 0;
 
- // Fixed Arrays for deterministic colors and heights
+  // Fixed Arrays for deterministic colors and heights
   const treeColors = ['#7FB069', '#A7C957', '#5E8B4C'];
   const heightOffsets = [5, 12, 2, 8, 14, 4, 10, 1, 7, 11, 3, 13, 6, 9, 0, 15];
 
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- LIVE API CALL: Fetch and Animate ---
   async function fetchLiveTreeCount() {
     try {
-      const response = await fetch('api/api.php', { cache: 'no-store' });
+      const response = await fetch(API_PATH, { cache: 'no-store' });
       if (!response.ok) throw new Error('API down');
       
       const data = await response.json();
@@ -170,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchLiveTreeCount();
   setInterval(fetchLiveTreeCount, FETCH_INTERVAL_MS);
 
-
   // --- RANDOM BACKGROUND INCREMENTS ---
   setInterval(async () => {
       // 20% chance to skip adding, makes it feel more organic and random
@@ -180,13 +179,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const randomTrees = Math.floor(Math.random() * 7) + 1; 
 
       try {
-          // Fixed: Use a GET request so api.php processes the $_GET['add'] parameter
           await fetch(`${API_PATH}?add=${randomTrees}`);
       } catch (e) {
           console.error("Random add failed", e);
       }
   }, RANDOM_ADD_INTERVAL_MS);
-
 
   // --- 1. Ambient Floating Code Particles ---
   function generateAmbientCode() {
@@ -237,13 +234,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     setTimeout(type, 500);
-  }
-
-  // --- Generate unique Tree ID ---
-  function generateTreeId() {
-    const timestamp = Date.now().toString(36);
-    const random = Math.random().toString(36).substring(2, 8);
-    return `TREE-${timestamp}-${random}`.toUpperCase();
   }
 
   // --- 4. Huge Dropzone Logic (Safe) ---
@@ -493,7 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = await response.json();
 
-        if (data.status === 'success') {
+        if (data.status === 'success' || data.success) {
           if (reviewConsole) {
             reviewConsole.innerHTML += `<br><p class="success-text">> [OK] ${data.message}</p>`;
           }
@@ -511,9 +501,9 @@ document.addEventListener("DOMContentLoaded", () => {
               currentDisplayedCount = data.newCount;
           }
           
-          // Generate and display Tree ID in all elements with that ID
-          const treeId = generateTreeId();
-          treeIdValues.forEach(el => el.textContent = treeId);
+          // --- FIX: ID VOM BACKEND NEHMEN STATT LOKAL ZU GENERIEREN ---
+          const serverTreeId = data.treeId; // Nutzt die ID aus der api.php!
+          treeIdValues.forEach(el => el.textContent = serverTreeId);
           successStates.forEach(state => state.style.display = "block");
           
           // Eingabefelder bei Erfolg sperren
@@ -527,7 +517,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if (reviewConsole) {
             reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] ${data.message}</p>`;
           }
-          // BEI FEHLER: Reaktivieren für einen neuen Versuch
           submitBtn.disabled = false;
           submitBtn.classList.remove('is-watering');
           if (icon) icon.textContent = "🌱";
@@ -535,10 +524,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
       } catch (err) {
+        console.error(err);
         if (reviewConsole) {
           reviewConsole.innerHTML += `<br><p class="sys" style="color: #FF5F56;">> [ERROR] Verbindung zum Server fehlgeschlagen.</p>`;
         }
-        // BEI FEHLER: Reaktivieren für einen neuen Versuch
         submitBtn.disabled = false;
         submitBtn.classList.remove('is-watering');
         if (icon) icon.textContent = "🌱";
@@ -547,8 +536,41 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // --- 6. Automated PDF Certificate Generation (Issue #12) ---
+  const downloadCertBtn = document.getElementById('downloadCertBtn');
+
+  if (downloadCertBtn) {
+    downloadCertBtn.addEventListener('click', () => {
+      // Werte dynamisch aus den Inputs und der generierten Server-ID ziehen
+      const userName = document.getElementById('name').value || 'Developer';
+      const projectName = document.getElementById('project').value || 'Code-Projekt';
+      const finalTreeId = document.querySelector('#treeIdValue').textContent;
+
+      // Daten in das unsichtbare HTML-Template injizieren
+      document.getElementById('pdfName').textContent = userName;
+      document.getElementById('pdfProject').textContent = projectName;
+      document.getElementById('pdfTreeId').textContent = finalTreeId;
+
+      const element = document.getElementById('pdfTemplate');
+      const opt = {
+        margin:       0,
+        filename:     `code4trees-Certificate-${finalTreeId}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07' },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
+
+      // Sichtbar machen, damit html2pdf es im DOM greifen kann
+      element.parentElement.style.display = 'block';
+      
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Danach sofort wieder verstecken
+        element.parentElement.style.display = 'none';
+      });
+    });
+  }
+
   // Diese Funktionsaufrufe gehören zum DOMContentLoaded Lifecycle und müssen hier ausgeführt werden:
-  
   typeWriter();
 
 });
