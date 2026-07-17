@@ -1,9 +1,13 @@
 const API_PATH = 'api/api.php'; // Define the API path as a constant
+const AUTH_API_PATH = 'api/auth.php';
+const SETUP_DATA_PATH = 'api/get_setup_data.php';
+const LEADERBOARD_API_PATH = 'api/leaderboard.php';
 
 document.addEventListener("DOMContentLoaded", () => {
 
   const FETCH_INTERVAL_MS = 10000; // Update counter every 10 seconds
   const RANDOM_ADD_INTERVAL_MS = 15000; // Attempt a random add every 15 seconds
+  const LEADERBOARD_INTERVAL_MS = 30000; // Refresh leaderboard every 30 seconds
 
   const treeCountEl = document.getElementById('treeCount');
   let currentDisplayedCount = -1;
@@ -18,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateForestVisuals(currentFloat, targetNum) {
       const forest = document.getElementById('forest');
       if (!forest) return;
-      
+
       if (currentFloat === 0) {
           forest.innerHTML = '';
           window.currentMagnitudeStep = -1;
@@ -46,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
               break;
           }
       }
-      
+
       if (targetNum > 2000000) {
           step = Math.pow(10, Math.floor(Math.log10(targetNum / 20)));
       }
@@ -59,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const fullTrees = Math.floor(currentFloat / step);
       const remainder = currentFloat % step;
       const fractionalScale = remainder / step;
-      
+
       const totalNodesNeeded = remainder > 0 ? fullTrees + 1 : fullTrees;
       const existingNodes = forest.children;
 
@@ -67,14 +71,14 @@ document.addEventListener("DOMContentLoaded", () => {
           const idx = existingNodes.length;
           const hOffset = heightOffsets[idx % heightOffsets.length];
           const color = treeColors[idx % treeColors.length];
-          
+
           const treeHTML = `<div class="tree-wrapper" style="margin: 0 -4px; transform-origin: bottom center; transform: scaleY(0);">
             <svg width="24" height="${30 + hOffset}" viewBox="0 0 24 ${30 + hOffset}" xmlns="http://www.w3.org/2000/svg" class="tree-svg">
               <rect x="11" y="${18 + hOffset}" width="3" height="12" fill="#8A6F4D"/>
               <polygon points="12.5,0 24,${18 + hOffset} 1,${18 + hOffset}" fill="${color}"/>
             </svg>
           </div>`;
-          
+
           forest.insertAdjacentHTML('beforeend', treeHTML);
       }
 
@@ -95,37 +99,37 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 2. ODOMETER ANIMATION FUNCTION ---
   function animateValue(obj, start, end) {
     if (!obj || start === end) return;
-    
+
     if (activeAnimationFrame) {
       window.cancelAnimationFrame(activeAnimationFrame);
       activeAnimationFrame = null;
     }
 
     const diff = end - start;
-    const duration = Math.min(Math.max(diff * 400, 500), 3000); 
+    const duration = Math.min(Math.max(diff * 400, 500), 3000);
 
     let startTimestamp = null;
-    
+
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
-      
+
       const rawProgress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const progress = 1 - Math.pow(1 - rawProgress, 3); 
-      
+      const progress = 1 - Math.pow(1 - rawProgress, 3);
+
       const currentNumFloat = progress * diff + start;
       const currentNumInt = Math.floor(currentNumFloat);
-      
+
       obj.innerHTML = currentNumInt.toLocaleString('de-AT');
       liveDisplayedValue = currentNumInt;
-      
+
       updateForestVisuals(currentNumFloat, end);
-      
+
       if (rawProgress < 1) {
         activeAnimationFrame = window.requestAnimationFrame(step);
       } else {
-        obj.innerHTML = end.toLocaleString('de-AT'); 
+        obj.innerHTML = end.toLocaleString('de-AT');
         liveDisplayedValue = end;
-        updateForestVisuals(end, end); 
+        updateForestVisuals(end, end);
         activeAnimationFrame = null;
       }
     };
@@ -137,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const response = await fetch(API_PATH, { cache: 'no-store' });
       if (!response.ok) throw new Error('API down');
-      
+
       const data = await response.json();
       const newCount = data.trees;
 
@@ -146,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
         liveDisplayedValue = 0;
         animateValue(treeCountEl, 0, newCount);
         currentDisplayedCount = newCount;
-      } 
+      }
       else if (newCount > currentDisplayedCount) {
         animateValue(treeCountEl, liveDisplayedValue, newCount);
         currentDisplayedCount = newCount;
@@ -161,8 +165,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- RANDOM BACKGROUND INCREMENTS ---
   setInterval(async () => {
-      if (Math.random() < 0.2) return; 
-      const randomTrees = Math.floor(Math.random() * 7) + 1; 
+      if (Math.random() < 0.2) return;
+      const randomTrees = Math.floor(Math.random() * 7) + 1;
       try {
           await fetch(`${API_PATH}?add=${randomTrees}`);
       } catch (e) {
@@ -174,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function generateAmbientCode() {
     const container = document.getElementById('floatingCodeContainer');
     if (!container) return;
-    container.innerHTML = ''; 
+    container.innerHTML = '';
 
     const symbols = ['{}', '</>', '[]', '()', '=>', '&&', '||', ';'];
     for (let i = 0; i < 15; i++) {
@@ -193,20 +197,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- Typewriter Effect für H1 ---
   function typeWriter() {
     const h1 = document.getElementById('typewriter');
-    if (!h1) return; 
-    
+    if (!h1) return;
+
     const text = "Lade dein Zip hoch.<br>Lass <em>Bäume</em> wachsen.";
     let i = 0;
     let isTag = false;
     let textBuffer = "";
-    
+
     function type() {
       if (i < text.length) {
         const char = text.charAt(i);
         textBuffer += char;
         if (char === '<') isTag = true;
         if (char === '>') isTag = false;
-        
+
         h1.innerHTML = textBuffer + (i < text.length - 1 ? '<span class="cursor">_</span>' : '');
         i++;
         setTimeout(type, isTag ? 0 : 50 + Math.random() * 50);
@@ -242,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
       fileInput.value = '';
       return;
     }
-    
+
     chosen.style.display = 'block';
     chosen.style.color = 'var(--paper-dim)';
     chosen.textContent = 'Analysiere Archiv-Inhalt...';
@@ -273,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!hasValidProjectFile) {
           chosen.style.color = 'var(--sun)';
           chosen.textContent = '⚠️ Kein gültiges Projekt!';
-          fileInput.value = ''; 
+          fileInput.value = '';
           dz.style.borderColor = 'var(--sun)';
           return;
         }
@@ -318,18 +322,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const icon = submitBtn.querySelector('.btn-icon');
       const text = submitBtn.querySelector('.btn-text');
-      
+
       submitBtn.disabled = true;
       submitBtn.classList.add('is-watering');
       if (icon) icon.textContent = "💧";
       if (text) text.textContent = "Lade Archiv hoch und prüfe...";
-      
+
       if (reviewConsole) {
         reviewConsole.style.display = "block";
         reviewConsole.innerHTML = `<p class="sys">> Sende Daten an Backend...</p>`;
       }
       if (successState) successState.style.display = "none";
-      
+
       const formData = new FormData(form);
 
       try {
@@ -338,24 +342,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (data.status === 'success' || data.success) {
           if (reviewConsole) reviewConsole.innerHTML += `<br><p class="success-text">> [OK] ${data.message}</p>`;
-          
+
           submitBtn.classList.remove('is-watering');
           submitBtn.classList.add('is-grown');
           if (icon) icon.textContent = "🌳";
           if (text) text.textContent = "Baum erfolgreich gepflanzt!";
-          
+
           fireTreeConfetti();
 
           if (data.newCount > currentDisplayedCount) {
               animateValue(treeCountEl, liveDisplayedValue, data.newCount);
               currentDisplayedCount = data.newCount;
           }
-          
+
           // Zuweisung der echten UUID aus der API-Response
           const serverTreeId = data.treeId || "TREE-UNKNOWN";
           if (treeIdValue) treeIdValue.textContent = serverTreeId;
           if (successState) successState.style.display = "block";
-          
+
           fileInput.disabled = true;
           if (document.getElementById('name')) document.getElementById('name').disabled = true;
           if (document.getElementById('project')) document.getElementById('project').disabled = true;
@@ -392,25 +396,362 @@ document.addEventListener("DOMContentLoaded", () => {
   const downloadCertBtn = document.getElementById('downloadCertBtn');
 
   if(downloadCertBtn){
-  
-  downloadCertBtn.addEventListener('click',()=>{
-  
-  const name =
-  document.getElementById('name').value || "Developer";
-  
-  const project =
-  document.getElementById('project').value || "Code Project";
-  
-  const id =
-  document.getElementById('treeIdValue').textContent;
-  
-  
-  window.open(
-  `api/certificate.php?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}&project=${encodeURIComponent(project)}`,
-  '_blank'
-  );
-});
+    downloadCertBtn.addEventListener('click', () => {
+      const name = document.getElementById('name').value || "Developer";
+      const project = document.getElementById('project').value || "Code Project";
+      const id = document.getElementById('treeIdValue').textContent;
+
+      window.open(
+        `api/certificate.php?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}&project=${encodeURIComponent(project)}`,
+        '_blank'
+      );
+    });
   }
+
+  // =====================================================================
+  // --- 7. AUTH-MODAL: STEUERUNG (Öffnen / Schließen / State-Umschalten)
+  // =====================================================================
+
+  const authNavBtn   = document.getElementById('authNavBtn');
+  const authModal    = document.getElementById('authModal');
+  const closeAuthBtn = document.getElementById('closeAuthBtn');
+  const loginState   = document.getElementById('loginState');
+  const registerState = document.getElementById('registerState');
+  const toRegisterLink = document.getElementById('toRegisterLink');
+  const toLoginLink    = document.getElementById('toLoginLink');
+  const authMessage    = document.getElementById('authMessage');
+
+  function showAuthMessage(msg, isError = false) {
+    if (!authMessage) return;
+    authMessage.textContent = msg;
+    authMessage.style.display = 'block';
+    authMessage.style.color = isError ? '#FF5F56' : 'var(--leaf)';
+  }
+
+  function clearAuthMessage() {
+    if (!authMessage) return;
+    authMessage.textContent = '';
+    authMessage.style.display = 'none';
+  }
+
+  function openAuthModal() {
+    if (!authModal) return;
+    authModal.style.display = 'flex';
+    authModal.setAttribute('aria-hidden', 'false');
+    clearAuthMessage();
+    // Stammdaten laden, sobald das Modal geöffnet wird (falls noch nicht geladen)
+    loadSetupData();
+  }
+
+  function closeAuthModal() {
+    if (!authModal) return;
+    authModal.style.display = 'none';
+    authModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function switchAuthState(target) {
+    clearAuthMessage();
+    if (!loginState || !registerState) return;
+    if (target === 'register') {
+      loginState.style.display = 'none';
+      registerState.style.display = 'block';
+    } else {
+      registerState.style.display = 'none';
+      loginState.style.display = 'block';
+    }
+  }
+
+  if (authNavBtn) authNavBtn.addEventListener('click', openAuthModal);
+  if (closeAuthBtn) closeAuthBtn.addEventListener('click', closeAuthModal);
+
+  // Klick auf den Modal-Hintergrund schließt das Modal (nicht auf die Card selbst)
+  if (authModal) {
+    authModal.addEventListener('click', (e) => {
+      if (e.target === authModal) closeAuthModal();
+    });
+  }
+
+  // ESC-Taste schließt das Modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') {
+      closeAuthModal();
+    }
+  });
+
+  if (toRegisterLink) {
+    toRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthState('register');
+    });
+  }
+  if (toLoginLink) {
+    toLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthState('login');
+    });
+  }
+
+  // =====================================================================
+  // --- 8. DYNAMISCHE DROPDOWNS: Uni & Fakultät aus IONOS-Stammdaten
+  // =====================================================================
+
+  const regUniversitySelect = document.getElementById('regUniversity');
+  const regFacultySelect    = document.getElementById('regFaculty');
+
+  let setupDataCache = null; // { universities: [...], faculties: [...] }
+  let setupDataLoaded = false;
+  let setupDataLoading = false;
+
+  async function loadSetupData() {
+    if (!regUniversitySelect) return; // Dropdowns existieren (noch) nicht im DOM
+    if (setupDataLoaded || setupDataLoading) return;
+
+    setupDataLoading = true;
+    try {
+      const response = await fetch(SETUP_DATA_PATH, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      setupDataCache = {
+        universities: data.universities || [],
+        faculties: data.faculties || []
+      };
+
+      populateUniversityDropdown(setupDataCache.universities);
+      setupDataLoaded = true;
+    } catch (error) {
+      console.error('Fehler beim Laden der Stammdaten (get_setup_data.php):', error);
+      showAuthMessage('Universitäten konnten nicht geladen werden. Bitte später erneut versuchen.', true);
+    } finally {
+      setupDataLoading = false;
+    }
+  }
+
+  function populateUniversityDropdown(universities) {
+    if (!regUniversitySelect) return;
+
+    regUniversitySelect.innerHTML = '<option value="" disabled selected>Universität wählen…</option>';
+    universities.forEach(uni => {
+      const opt = document.createElement('option');
+      opt.value = uni.id;
+      opt.textContent = uni.name;
+      regUniversitySelect.appendChild(opt);
+    });
+
+    if (regFacultySelect) {
+      regFacultySelect.innerHTML = '<option value="" disabled selected>Zuerst Universität wählen</option>';
+      regFacultySelect.disabled = true;
+    }
+  }
+
+  function populateFacultyDropdown(universityId) {
+    if (!regFacultySelect || !setupDataCache) return;
+
+    const filteredFaculties = setupDataCache.faculties.filter(
+      f => String(f.university_id) === String(universityId)
+    );
+
+    regFacultySelect.innerHTML = '';
+
+    if (filteredFaculties.length === 0) {
+      regFacultySelect.innerHTML = '<option value="" disabled selected>Keine Fakultäten gefunden</option>';
+      regFacultySelect.disabled = true;
+      return;
+    }
+
+    regFacultySelect.innerHTML = '<option value="" disabled selected>Fakultät wählen…</option>';
+    filteredFaculties.forEach(fac => {
+      const opt = document.createElement('option');
+      opt.value = fac.id;
+      opt.textContent = fac.name;
+      regFacultySelect.appendChild(opt);
+    });
+    regFacultySelect.disabled = false;
+  }
+
+  if (regUniversitySelect) {
+    regUniversitySelect.addEventListener('change', (e) => {
+      populateFacultyDropdown(e.target.value);
+    });
+  }
+
+  // Stammdaten schon beim initialen Seitenaufruf vorladen (nicht erst beim Modal-Öffnen)
+  loadSetupData();
+
+  // =====================================================================
+  // --- 9. REGISTRIERUNG & LOGIN ÜBER auth.php
+  // =====================================================================
+
+  const registerForm = document.getElementById('registerForm');
+  const loginForm     = document.getElementById('loginForm');
+
+  function applyLoggedInUser(user) {
+    if (!user) return;
+    window.currentUser = user;
+
+    // Nickname automatisch ins Einreich-Formular übernehmen
+    const nameField = document.getElementById('name');
+    if (nameField && user.username) {
+      nameField.value = user.username;
+    }
+
+    // Login-Button im Header auf "eingeloggt"-Status umstellen
+    if (authNavBtn) {
+      authNavBtn.textContent = `👤 ${user.username}`;
+    }
+  }
+
+  async function checkExistingSession() {
+    try {
+      const response = await fetch(`${AUTH_API_PATH}?action=me`, { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data.status === 'success' && data.loggedIn) {
+        applyLoggedInUser(data.user);
+      }
+    } catch (error) {
+      console.error('Session-Check fehlgeschlagen:', error);
+    }
+  }
+
+  checkExistingSession();
+
+  function setAuthBusy(formEl, busy, busyLabel, idleLabel) {
+    if (!formEl) return;
+    const btn = formEl.querySelector('button[type="submit"]');
+    if (!btn) return;
+    btn.disabled = busy;
+    btn.textContent = busy ? busyLabel : idleLabel;
+  }
+
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAuthMessage();
+
+      if (!registerForm.checkValidity()) {
+        registerForm.reportValidity();
+        return;
+      }
+
+      setAuthBusy(registerForm, true, 'Registriere…', 'Registrieren');
+
+      try {
+        const formData = new FormData(registerForm);
+        const response = await fetch(`${AUTH_API_PATH}?action=register`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+
+        if (response.ok && (data.status === 'success' || data.success)) {
+          showAuthMessage(data.message || 'Registrierung erfolgreich! Du kannst dich jetzt einloggen.');
+          registerForm.reset();
+          if (regFacultySelect) {
+            regFacultySelect.innerHTML = '<option value="" disabled selected>Zuerst Universität wählen</option>';
+            regFacultySelect.disabled = true;
+          }
+          switchAuthState('login');
+        } else {
+          showAuthMessage(data.message || 'Registrierung fehlgeschlagen. Bitte Angaben prüfen.', true);
+        }
+      } catch (error) {
+        console.error('Registrierungsfehler:', error);
+        showAuthMessage('Verbindungsfehler. Bitte später erneut versuchen.', true);
+      } finally {
+        setAuthBusy(registerForm, false, 'Registriere…', 'Registrieren');
+      }
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAuthMessage();
+
+      if (!loginForm.checkValidity()) {
+        loginForm.reportValidity();
+        return;
+      }
+
+      setAuthBusy(loginForm, true, 'Anmeldung läuft…', 'Einloggen');
+
+      try {
+        const formData = new FormData(loginForm);
+        const response = await fetch(`${AUTH_API_PATH}?action=login`, {
+          method: 'POST',
+          body: formData
+        });
+        const data = await response.json();
+
+        if (response.ok && (data.status === 'success' || data.success)) {
+          showAuthMessage(data.message || 'Login erfolgreich!');
+          applyLoggedInUser(data.user);
+          setTimeout(closeAuthModal, 800);
+        } else {
+          showAuthMessage(data.message || 'Login fehlgeschlagen. Bitte Zugangsdaten prüfen.', true);
+        }
+      } catch (error) {
+        console.error('Login-Fehler:', error);
+        showAuthMessage('Verbindungsfehler. Bitte später erneut versuchen.', true);
+      } finally {
+        setAuthBusy(loginForm, false, 'Anmeldung läuft…', 'Einloggen');
+      }
+    });
+  }
+
+  // =====================================================================
+  // --- 10. LIVE-LEADERBOARD ("Der Semester-Fight")
+  // =====================================================================
+
+  const leaderboardListEl = document.getElementById('leaderboardList');
+
+  function renderLeaderboard(entries) {
+    if (!leaderboardListEl) return;
+
+    if (!entries || entries.length === 0) {
+      leaderboardListEl.innerHTML = '<li class="leaderboard-empty">Noch keine Daten verfügbar.</li>';
+      return;
+    }
+
+    leaderboardListEl.innerHTML = entries.map((entry, index) => {
+      const rank = index + 1;
+      const uniName = entry.university_name || entry.name || 'Unbekannte Uni';
+      const treeCount = Number(entry.trees ?? entry.tree_count ?? 0).toLocaleString('de-AT');
+
+      let medal = '';
+      if (rank === 1) medal = '🥇';
+      else if (rank === 2) medal = '🥈';
+      else if (rank === 3) medal = '🥉';
+
+      return `
+        <li class="leaderboard-row">
+          <span class="lb-rank">${medal || `#${rank}`}</span>
+          <span class="lb-name">${uniName}</span>
+          <span class="lb-count">${treeCount} 🌳</span>
+        </li>
+      `;
+    }).join('');
+  }
+
+  async function fetchLeaderboard() {
+    if (!leaderboardListEl) return; // Sektion existiert (noch) nicht im DOM
+
+    try {
+      const response = await fetch(LEADERBOARD_API_PATH, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      const data = await response.json();
+      const entries = data.leaderboard || data.universities || [];
+      renderLeaderboard(entries);
+    } catch (error) {
+      console.error('Leaderboard-Fehler:', error);
+      leaderboardListEl.innerHTML = '<li class="leaderboard-empty">Leaderboard momentan nicht verfügbar.</li>';
+    }
+  }
+
+  fetchLeaderboard();
+  setInterval(fetchLeaderboard, LEADERBOARD_INTERVAL_MS);
 
   typeWriter();
 });
