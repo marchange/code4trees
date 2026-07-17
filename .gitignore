@@ -3,7 +3,6 @@ rate_limits.json
 data/records.json
 
 # Composer
-vendor/
 
 # Environment
 .env
