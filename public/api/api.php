@@ -7,7 +7,7 @@ $rate_limit_file = '../data/rate_limits.json';
 $count = 0; 
 
 // Rate limiting configuration
-$max_requests_per_hour = 10; // Max 10 requests per IP per hour danke alex 
+$max_requests_per_hour = 100; // Max 100 requests per IP per hour danke alex 
 $current_ip = $_SERVER['REMOTE_ADDR'];
 $current_hour = date('Y-m-d-H'); // Hour identifier (e.g., "2024-01-15-14")
 
