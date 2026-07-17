@@ -987,8 +987,6 @@ footer {
     margin: 0;
     padding: 0;
     width: 100vw;
-    height: 100vh;
-    overflow: hidden;
     background-color: #080c08; 
     color: #DFDFDF;
     display: flex;
