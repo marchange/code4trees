@@ -2,7 +2,11 @@
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+
+
 echo "1. PHP läuft.<br>";
+echo "DEBUG __DIR__ = " . __DIR__ . "<br>";
+
 
 $autoload = __DIR__ . '/../../vendor/autoload.php';
 if (!file_exists($autoload)) {
