@@ -71,6 +71,8 @@ const activeTask = computed(() => tasks.find(t => t.id === activeTaskId.value) |
 const editorCode = ref('')
 const openCategories = ref(new Set())
 const showNext = ref(false)
+const allTasksSolved = computed(() => state.value.completed.length === tasks.length)
+const showCompletionBanner = ref(false)
 
 const consoleLines = ref([
   { html: '> IDE initialized.', cls: 'log-sys' },
@@ -200,6 +202,19 @@ function runCode() {
           state.value.xp += task.xp
           saveState()
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } })
+
+          if (allTasksSolved.value) {
+            logToConsole('<br>> 🏆 ALLE HERAUSFORDERUNGEN GELÖST! Du bist ein Bug Hunter Champion!', 'success')
+            showCompletionBanner.value = true
+            setTimeout(() => { showCompletionBanner.value = false }, 6000)
+            const duration = 2000
+            const end = Date.now() + duration
+            ;(function burst() {
+              confetti({ particleCount: 6, angle: 60, spread: 60, origin: { x: 0 }, colors: ['#A7C957', '#E8C547', '#7FB069'] })
+              confetti({ particleCount: 6, angle: 120, spread: 60, origin: { x: 1 }, colors: ['#A7C957', '#E8C547', '#7FB069'] })
+              if (Date.now() < end) requestAnimationFrame(burst)
+            })()
+          }
         }
         const currentIndex = tasks.findIndex(t => t.id === task.id)
         if (currentIndex < tasks.length - 1) showNext.value = true
@@ -250,8 +265,13 @@ onMounted(() => {
       <div class="user-stats">
         <span>{{ state.xp }} XP</span>
         <span>{{ state.completed.length }} / {{ tasks.length }} gelöst</span>
+        <span v-if="allTasksSolved" class="champion-badge">🏆 Champion</span>
       </div>
     </aside>
+
+    <div v-if="showCompletionBanner" class="arena-completion-banner">
+      🏆 Alle Herausforderungen gelöst! Du bist ein Bug Hunter Champion!
+    </div>
 
     <main class="workspace-main">
 

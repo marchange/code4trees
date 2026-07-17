@@ -130,8 +130,35 @@ body.arena-view, body.arena-view html {
     font-size: 0.8rem;
     color: var(--leaf);
     display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     justify-content: space-between;
     background: rgba(0,0,0,0.3);
+  }
+
+  .champion-badge {
+    width: 100%;
+    text-align: center;
+    color: var(--sun, #E8C547);
+    font-weight: 600;
+  }
+
+  .arena-completion-banner {
+    position: fixed;
+    top: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    background: rgba(6, 9, 6, 0.95);
+    border: 1px solid var(--sun, #E8C547);
+    color: var(--sun, #E8C547);
+    font-family: var(--mono);
+    font-weight: 600;
+    padding: 14px 24px;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(232, 197, 71, 0.25);
+    animation: fadeIn 0.3s ease forwards;
+    text-align: center;
   }
 
   /* --- MIDDLE WORKSPACE --- */
@@ -331,7 +358,64 @@ body.arena-view, body.arena-view html {
     overflow-y: auto;
     word-wrap: break-word;
   }
-  
+
+  /* --- Mobile: stack the 3-column IDE layout instead of overflowing (issue #31) ---
+     The 100vh/overflow:hidden lock above is fine on desktop (each panel scrolls
+     internally), but 3 fixed-width columns side by side can't fit a phone screen.
+     Below the breakpoint we stack the columns and let the whole page scroll instead. */
+  @media (max-width: 900px) {
+    body.arena-view, body.arena-view html {
+      height: auto;
+      min-height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .ide-layout {
+      flex-direction: column;
+      height: auto;
+      min-height: 100vh;
+      padding-top: 70px;
+    }
+
+    .sidebar-left {
+      width: auto;
+      max-height: 40vh;
+      margin: 0 12px;
+      border-radius: 8px;
+      border-right: none;
+    }
+
+    .workspace-main {
+      min-height: 60vh;
+      margin: 12px;
+      border-top: none;
+    }
+
+    .sidebar-right {
+      width: auto;
+      max-height: 35vh;
+      margin: 0 12px 12px;
+      border-radius: 8px;
+      border-left: none;
+    }
+
+    .editor-core {
+      min-height: 240px;
+    }
+
+    .task-header-area {
+      padding: 16px 20px;
+    }
+
+    .arena-completion-banner {
+      left: 12px;
+      right: 12px;
+      transform: none;
+      top: 76px;
+    }
+  }
+
   .log-line { margin-bottom: 8px; line-height: 1.4; }
   .log-sys { color: rgba(255,255,255,0.4); }
   .log-success { color: var(--leaf); }
