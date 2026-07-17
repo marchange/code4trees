@@ -39,7 +39,7 @@ jobs:
         user: ${{ secrets.SFTP_USERNAME }}
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
-        localDir: '/'
+        localDir: './frontend/dist'
         remoteDir: '/testing'
         reverse: true
         options: '--delete'
