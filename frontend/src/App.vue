@@ -2,6 +2,7 @@
 import AmbientBackground from './components/AmbientBackground.vue'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
+import IntroAnimation from './components/IntroAnimation.vue'
 import { useRoute } from 'vue-router'
 import { computed, watch } from 'vue'
 
@@ -24,4 +25,5 @@ watch(
   <SiteHeader />
   <router-view />
   <SiteFooter v-if="showFooter" />
+  <IntroAnimation />
 </template>
