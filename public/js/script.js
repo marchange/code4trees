@@ -403,19 +403,29 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById('pdfTreeId').textContent = finalTreeId;
 
       const element = document.getElementById('pdfTemplate');
+      const wrapper = document.getElementById('pdfWrapper');
+      
       const opt = {
         margin:       0,
         filename:     `code4trees-Zertifikat-${finalTreeId}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
-        // letterRendering hilft zusätzlich, dass Schriften scharf bleiben
         html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07', width: 1050, height: 740, letterRendering: true },
         jsPDF:        { unit: 'pt', format: [1050, 740], orientation: 'landscape' }
       };
 
-      // Da das Element jetzt Off-Screen ist, können wir es einfach sofort generieren!
-      html2pdf().set(opt).from(element).save().catch(err => {
-        console.error("PDF generation crashed:", err);
-      });
+      // 1. Wrapper in den DOM holen (sichtbar schalten)
+      wrapper.style.display = 'block';
+
+      // 2. ZWINGE den Browser 50 Millisekunden zu warten und den Text zu rendern, bevor das Foto gemacht wird!
+      setTimeout(() => {
+        html2pdf().set(opt).from(element).save().then(() => {
+          // 3. Sofort wieder verstecken, sobald das PDF generiert wird
+          wrapper.style.display = 'none';
+        }).catch(err => {
+          console.error("PDF generation crashed:", err);
+          wrapper.style.display = 'none';
+        });
+      }, 50);
     });
   }
 
