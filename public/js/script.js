@@ -502,9 +502,15 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           
           // --- FIX: ID VOM BACKEND NEHMEN STATT LOKAL ZU GENERIEREN ---
-          const serverTreeId = data.treeId; // Nutzt die ID aus der api.php!
-          treeIdValues.forEach(el => el.textContent = serverTreeId);
-          successStates.forEach(state => state.style.display = "block");
+          const serverTreeId = data.treeId;
+
+window.certificateData = {
+    name: document.getElementById('name').value,
+    project: document.getElementById('project').value,
+    treeId: serverTreeId
+};
+
+treeIdValues.forEach(el => el.textContent = serverTreeId);
           
           // Eingabefelder bei Erfolg sperren
           fileInput.disabled = true;
@@ -542,11 +548,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (downloadCertBtn) {
     downloadCertBtn.addEventListener('click', () => {
       // Werte dynamisch aus den Feldern holen
-      const userName = document.getElementById('name').value || 'Developer';
-      const projectName = document.getElementById('project').value || 'Code-Projekt';
-      
-      // CRITICAL FIX: Holt die echte, einzigartige ID, die im successState gerendert wurde!
-      const finalTreeId = document.getElementById('treeIdValue').textContent;
+      const userName = window.certificateData.name;
+      const projectName = window.certificateData.project;
+      const finalTreeId = window.certificateData.treeId;
 
       // Daten ins unsichtbare HTML-Template injizieren, bevor html2pdf es abgreift
       document.getElementById('pdfName').textContent = userName;
