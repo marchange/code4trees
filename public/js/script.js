@@ -407,19 +407,14 @@ document.addEventListener("DOMContentLoaded", () => {
         margin:       0,
         filename:     `code4trees-Zertifikat-${finalTreeId}.pdf`,
         image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07', width: 1050, height: 740 },
+        // letterRendering hilft zusätzlich, dass Schriften scharf bleiben
+        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07', width: 1050, height: 740, letterRendering: true },
         jsPDF:        { unit: 'pt', format: [1050, 740], orientation: 'landscape' }
       };
 
-      // Dem Wrapper temporär Display-Block verpassen, damit html2pdf es fehlerfrei rendert
-      const parentWrapper = element.parentElement;
-      parentWrapper.style.display = 'block';
-      
-      html2pdf().set(opt).from(element).save().then(() => {
-        parentWrapper.style.display = 'none';
-      }).catch(err => {
+      // Da das Element jetzt Off-Screen ist, können wir es einfach sofort generieren!
+      html2pdf().set(opt).from(element).save().catch(err => {
         console.error("PDF generation crashed:", err);
-        parentWrapper.style.display = 'none';
       });
     });
   }
