@@ -1,8 +1,6 @@
 tree_count.txt
 rate_limits.json
 data/records.json
-api/db.php
-public/api/db.php
 
 # Composer
 vendor/
