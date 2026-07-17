@@ -39,12 +39,7 @@ jobs:
         user: ${{ secrets.SFTP_USERNAME }}
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
-<<<<<<< Updated upstream
-        localDir: './public'
+        localDir: './'
         remoteDir: '/testing'
-=======
-        localDir: './frontend/dist'
-        remoteDir: ${{ github.ref_name == 'main' && '/public' || '/dev' }}
->>>>>>> Stashed changes
         reverse: true
         options: '--delete'
