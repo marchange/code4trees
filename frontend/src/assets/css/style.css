@@ -483,11 +483,31 @@ h1 em {
   margin-left: 10px; 
 }
 
-.log-body { 
-  font-family: var(--mono); 
-  font-size: 0.85rem; 
-  padding: 20px; 
-  line-height: 2; 
+.log-body {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  padding: 20px;
+  line-height: 2;
+  position: relative;
+}
+
+/* Rotierender Live-Feed: neuer Eintrag rutscht oben herein, ältester blendet aus */
+.feed-enter-from {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+.feed-enter-active {
+  transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.feed-leave-to {
+  opacity: 0;
+}
+.feed-leave-active {
+  transition: opacity 0.25s ease;
+  position: absolute;
+}
+.feed-move {
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .log-body .hash { 
@@ -546,12 +566,44 @@ h1 em {
 }
 
 .counter .num {
-  font-family: var(--display); 
-  font-weight: 800; 
-  font-size: 2.8rem; 
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 2.8rem;
   color: var(--leaf);
-  text-shadow: 0 0 15px var(--leaf-glow); 
+  text-shadow: 0 0 15px var(--leaf-glow);
   transition: all 0.3s;
+}
+
+.num-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+/* Schwebender "+N"-Impuls, wenn der Zähler live wächst */
+.count-pulse {
+  position: absolute;
+  left: 100%;
+  top: 4px;
+  margin-left: 10px;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--leaf);
+  text-shadow: 0 0 12px var(--leaf-glow);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: countPulse 1.5s ease-out forwards;
+}
+
+@keyframes countPulse {
+  0% { opacity: 0; transform: translateY(8px); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-30px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .count-pulse { display: none; }
 }
 
 .num.pop { 

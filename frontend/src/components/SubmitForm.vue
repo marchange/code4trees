@@ -272,8 +272,8 @@ async function onSubmit() {
 
 <template>
   <section id="einreichen">
-    <h2>Projekt einreichen</h2>
-    <p class="section-intro">Zieh dein fertiges <strong>.zip Archiv</strong> einfach in die Box. Sobald die KI dein Projekt validiert hat, wächst dein Baum!</p>
+    <h2 v-reveal>Projekt einreichen</h2>
+    <p class="section-intro" v-reveal="80">Zieh dein fertiges <strong>.zip Archiv</strong> einfach in die Box. Sobald die KI dein Projekt validiert hat, wächst dein Baum!</p>
 
     <Teleport to="body">
       <div v-if="successVisible" class="success-modal-overlay" @click.self="closeSuccessModal">
@@ -312,7 +312,7 @@ async function onSubmit() {
       <CertificateCard :name="name || 'Anonymous'" :project="project || 'Project'" :tree-id="treeId" :date="certificateDate" />
     </div>
 
-    <form class="form-card" ref="formEl" novalidate @submit.prevent="onSubmit">
+    <form class="form-card" ref="formEl" novalidate v-reveal="160" @submit.prevent="onSubmit">
 
       <div class="form-grid">
         <div class="field">

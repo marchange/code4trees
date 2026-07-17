@@ -9,6 +9,17 @@ const { targetCount, apiError, fetchLiveTreeCount } = useTrees()
 const treeCountEl = ref(null)
 const forestEl = ref(null)
 
+// Schwebende "+N"-Impulse neben der Zahl, wenn der Zähler live wächst
+const pulses = ref([])
+let pulseId = 0
+function spawnPulse(amount) {
+  const id = pulseId++
+  pulses.value.push({ id, amount })
+  setTimeout(() => {
+    pulses.value = pulses.value.filter(p => p.id !== id)
+  }, 1600)
+}
+
 let currentDisplayedCount = -1
 let activeAnimationFrame = null
 let liveDisplayedValue = 0
@@ -157,6 +168,7 @@ watch(targetCount, (newCount) => {
     animateValue(treeCountEl.value, 0, newCount)
     currentDisplayedCount = newCount
   } else if (newCount > currentDisplayedCount) {
+    spawnPulse(newCount - currentDisplayedCount)
     animateValue(treeCountEl.value, liveDisplayedValue, newCount)
     currentDisplayedCount = newCount
   }
@@ -176,9 +188,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="counter">
-    <div class="counter-inner">
+    <div class="counter-inner" v-reveal>
       <div>
-        <div class="num" ref="treeCountEl">0</div>
+        <div class="num-wrap">
+          <div class="num" ref="treeCountEl">0</div>
+          <span v-for="p in pulses" :key="p.id" class="count-pulse" aria-hidden="true">+{{ p.amount }}</span>
+        </div>
         <div class="label">Bäume durch Studenten gepflanzt</div>
       </div>
       <div class="forest" ref="forestEl" aria-hidden="true"></div>
