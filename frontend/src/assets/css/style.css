@@ -1181,13 +1181,15 @@ footer {
   }
 
 
-  html, body {
+  /* Nur auf der Arena-Route aktiv (siehe App.vue: body.arena-view Toggle) —
+     sonst würde dieses Vollbild-IDE-Layout auf jeder Seite das Scrollen blockieren. */
+  body.arena-view, body.arena-view html {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
-    background-color: #080c08; 
+    background-color: #080c08;
     color: #DFDFDF;
     display: flex;
     flex-direction: column;
