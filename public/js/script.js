@@ -391,42 +391,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- 6. Automated PDF Certificate Generation Fix ---
   const downloadCertBtn = document.getElementById('downloadCertBtn');
 
-  if (downloadCertBtn) {
-    downloadCertBtn.addEventListener('click', () => {
-      const userName = document.getElementById('name').value || 'Developer';
-      const projectName = document.getElementById('project').value || 'Code-Projekt';
-      const finalTreeId = document.getElementById('treeIdValue').textContent;
-
-      // Daten exakt in das Template drücken
-      document.getElementById('pdfName').textContent = userName;
-      document.getElementById('pdfProject').textContent = projectName;
-      document.getElementById('pdfTreeId').textContent = finalTreeId;
-
-      const element = document.getElementById('pdfTemplate');
-      const wrapper = document.getElementById('pdfWrapper');
-      
-      const opt = {
-        margin:       0,
-        filename:     `code4trees-Zertifikat-${finalTreeId}.pdf`,
-        image:        { type: 'jpeg', quality: 1.0 },
-        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#050a07', width: 1050, height: 740, letterRendering: true },
-        jsPDF:        { unit: 'pt', format: [1050, 740], orientation: 'landscape' }
-      };
-
-      // 1. Wrapper in den DOM holen (sichtbar schalten)
-      wrapper.style.display = 'block';
-
-      // 2. ZWINGE den Browser 50 Millisekunden zu warten und den Text zu rendern, bevor das Foto gemacht wird!
-      setTimeout(() => {
-        html2pdf().set(opt).from(element).save().then(() => {
-          // 3. Sofort wieder verstecken, sobald das PDF generiert wird
-          wrapper.style.display = 'none';
-        }).catch(err => {
-          console.error("PDF generation crashed:", err);
-          wrapper.style.display = 'none';
-        });
-      }, 50);
-    });
+  if(downloadCertBtn){
+  
+  downloadCertBtn.addEventListener('click',()=>{
+  
+  const name =
+  document.getElementById('name').value || "Developer";
+  
+  const project =
+  document.getElementById('project').value || "Code Project";
+  
+  const id =
+  document.getElementById('treeIdValue').textContent;
+  
+  
+  window.open(
+  `api/certificate.php?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}&project=${encodeURIComponent(project)}`,
+  '_blank'
+  );
+});
   }
 
   typeWriter();

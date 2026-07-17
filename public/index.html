@@ -17,9 +17,6 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-<!-- html2pdf.js für den Zertifikats-Download -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
 <!-- External CSS -->
 <link rel="stylesheet" href="css/style.css">
 <!-- External JS -->
@@ -165,53 +162,6 @@
     </form>
   </section>
 </main>
-
-<!-- UNSICHTBARES TEMPLATE FÜR DAS BRAND-PDF (Zwecks HTML-Validität außerhalb des Forms platziert) -->
-<div id="pdfWrapper" style="display: none; position: absolute; z-index: -1000;">
-    <div id="pdfTemplate" style="width: 1050px; height: 740px; padding: 60px; background: #050a07; color: #EAF0E4; font-family: 'IBM Plex Sans', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
-    <div style="position: absolute; top: -150px; right: -150px; width: 400px; height: 400px; background: rgba(127, 176, 105, 0.04); border-radius: 50%; pointer-events: none;"></div>
-    <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: rgba(232, 197, 71, 0.03); border-radius: 50%; pointer-events: none;"></div>
-    <div style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px solid #1C3324; pointer-events: none; border-radius: 4px;"></div>
-    <div style="position: absolute; top: 30px; left: 30px; right: 30px; bottom: 30px; border: 1px solid #A7C957; pointer-events: none; border-radius: 2px;"></div>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; position: relative;">
-      <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: bold; color: #EAF0E4; display: flex; align-items: center; gap: 8px;">
-        <span style="color: #A7C957; font-family: 'IBM Plex Mono', monospace;">&#123;&#125;</span> code4trees
-      </div>
-      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #7FB069; letter-spacing: 2px;">
-        // CERTIFICATE OF ENVIRONMENTAL IMPACT
-      </div>
-    </div>
-
-    <div style="text-align: center; margin-top: 40px; position: relative;">
-      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #E8C547; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px;">
-        OFFIZIELLE BESTÄTIGUNG
-      </div>
-      <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 48px; font-weight: 800; color: #EAF0E4; margin: 0 0 30px 0; letter-spacing: -1px;">
-        Urkunde über nachhaltigen Code
-      </h1>
-      <p style="font-size: 20px; color: #B8C6B0; max-width: 750px; margin: 0 auto 50px auto; line-height: 1.7; font-weight: 400;">
-        Hiermit wird feierlich zertifiziert, dass <strong id="pdfName" style="color: #FFF; border-bottom: 2px solid #A7C957; padding-bottom: 2px;">[Name]</strong> das Code-Projekt 
-        <strong id="pdfProject" style="color: #A7C957;">[Projekt]</strong> erfolgreich über die KI-Validierung eingereicht hat. Dieser technologische Beitrag erfüllt die Kriterien für Green-Tech-Education und finanziert die Pflanzung von 1 echten Baum im Campuswald.
-      </p>
-    </div>
-
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; position: absolute; bottom: 70px; left: 70px; right: 70px;">
-      <div style="text-align: left;">
-        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7FB069; margin-bottom: 8px;">VERIFIZIERTE BAUM-ID:</div>
-        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: bold; color: #E8C547; background: #14251A; padding: 10px 18px; border-radius: 4px; border: 1px solid #1C3324; letter-spacing: 1px;" id="pdfTreeId">
-          TREE-XXXX-XXXX
-        </div>
-      </div>
-      <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B8C6B0; line-height: 1.5;">
-        <div style="color: #A7C957; font-weight: bold;">✓ VERIFIED BY AI</div>
-        <div>STATUS: ACTIVE / PLANTED</div>
-        <div style="font-size: 11px; margin-top: 4px; color: #7FB069;">CAMPUS YEAR: 2026</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <footer>
   <div class="footer-inner">
     <div class="footer-left">
