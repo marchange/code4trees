@@ -23,10 +23,10 @@ body.arena-view, body.arena-view html {
     --chal-color: #7fb069;
   }
 
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  body.arena-view ::-webkit-scrollbar { width: 8px; height: 8px; }
+  body.arena-view ::-webkit-scrollbar-track { background: transparent; }
+  body.arena-view ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  body.arena-view ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
   .ide-layout {
     display: flex;
