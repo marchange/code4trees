@@ -119,46 +119,39 @@ if ($fp && flock($fp, LOCK_EX)) {
     flock($fp, LOCK_UN);
     fclose($fp);
 
-    echo json_encode([
-        "status" => "success", 
-        "message" => "Project validated! Tree planted.",
-        "trees" => $count,
-        "newCount" => $count
-    ]);
-    exit;
-}
-
-if ($validationSuccess) {
-    $treeId = "TREE-" . strtoupper(bin2hex(random_bytes(4))) . "-" . strtoupper(bin2hex(random_bytes(2))); // Example ID generation
+    // --- INTEGRATED ISSUE #11: GENERATE TREE ID & SAVE RECORD ---
+    $treeId = "TREE-" . strtoupper(bin2hex(random_bytes(4))) . "-" . strtoupper(bin2hex(random_bytes(3)));
     
-    // --- ISSUE #11: DATA PERSISTENCE ---
     $recordFile = __DIR__ . '/records.json';
-    
-    // Get existing records or initialize empty array
     $existingRecords = [];
     if (file_exists($recordFile)) {
         $fileData = file_get_contents($recordFile);
         $existingRecords = json_decode($fileData, true) ?? [];
     }
     
-    // Capture user inputs safely
+    // Fallback on $_REQUEST to securely catch both POST and GET parameters
+    $userName = isset($_REQUEST['name']) ? htmlspecialchars($_REQUEST['name'], ENT_QUOTES, 'UTF-8') : 'Anonymous';
+    $projectName = isset($_REQUEST['project']) ? htmlspecialchars($_REQUEST['project'], ENT_QUOTES, 'UTF-8') : 'Project';
+    
     $newRecord = [
         'tree_id' => $treeId,
-        'name'    => filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'Anonymous',
-        'project' => filter_input(INPUT_POST, 'project', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'Project',
+        'name'    => $userName,
+        'project' => $projectName,
         'date'    => date('Y-m-d H:i:s')
     ];
     
-    // Append and save back to JSON
     $existingRecords[] = $newRecord;
     file_put_contents($recordFile, json_encode($existingRecords, JSON_PRETTY_PRINT));
-    // -----------------------------------
+    // -------------------------------------------------------------
 
-    // Return response to your script.js
+    // Returns all keys your current frontend script expects + the new treeId!
     echo json_encode([
-        'success' => true,
-        'treeId'  => $treeId,
-        'message' => 'Project validated and tree planted!'
+        "status" => "success", 
+        "success" => true,
+        "message" => "Project validated! Tree planted.",
+        "trees" => $count,
+        "newCount" => $count,
+        "treeId" => $treeId
     ]);
     exit;
 }
