@@ -128,6 +128,41 @@ if ($fp && flock($fp, LOCK_EX)) {
     exit;
 }
 
+if ($validationSuccess) {
+    $treeId = "TREE-" . strtoupper(bin2hex(random_bytes(4))) . "-" . strtoupper(bin2hex(random_bytes(2))); // Example ID generation
+    
+    // --- ISSUE #11: DATA PERSISTENCE ---
+    $recordFile = __DIR__ . '/records.json';
+    
+    // Get existing records or initialize empty array
+    $existingRecords = [];
+    if (file_exists($recordFile)) {
+        $fileData = file_get_contents($recordFile);
+        $existingRecords = json_decode($fileData, true) ?? [];
+    }
+    
+    // Capture user inputs safely
+    $newRecord = [
+        'tree_id' => $treeId,
+        'name'    => filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'Anonymous',
+        'project' => filter_input(INPUT_POST, 'project', FILTER_SANITIZE_SPECIAL_CHARS) ?? 'Project',
+        'date'    => date('Y-m-d H:i:s')
+    ];
+    
+    // Append and save back to JSON
+    $existingRecords[] = $newRecord;
+    file_put_contents($recordFile, json_encode($existingRecords, JSON_PRETTY_PRINT));
+    // -----------------------------------
+
+    // Return response to your script.js
+    echo json_encode([
+        'success' => true,
+        'treeId'  => $treeId,
+        'message' => 'Project validated and tree planted!'
+    ]);
+    exit;
+}
+
 // Fallback error
 echo json_encode(["status" => "error", "message" => "Server busy."]);
 ?>
