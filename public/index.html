@@ -15,12 +15,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<!-- Canvas Confetti Library für die Partikel-Explosion -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- html2pdf.js für den Zertifikats-Download für issues #36,37,37-->
+<!-- html2pdf.js für den Zertifikats-Download -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <!-- External CSS -->
@@ -113,6 +110,7 @@
 
     <form class="form-card" id="submitForm" novalidate>
 
+      <!-- SUCCESS CARD STATE -->
       <div id="successState" style="display: none; margin-bottom: 20px; padding: 20px; background: rgba(127, 176, 105, 0.15); border: 1px solid var(--leaf); border-radius: 8px;">
         <h3 style="color: var(--leaf); margin-top: 0;">🎉 Baum erfolgreich gepflanzt!</h3>
         <p>Dein Projekt wurde verifiziert. Hier ist deine einzigartige Baum-ID:</p>
@@ -126,7 +124,6 @@
           </button>
         </div>
 
-        <!-- NEU: Der PDF Download Button -->
         <button type="button" class="btn btn-primary" id="downloadCertBtn" style="width: 100%; margin-top: 15px; margin-bottom: 15px; background: var(--sun); color: var(--pine-950);">
           📄 Zertifikat als PDF herunterladen
         </button>
@@ -134,82 +131,86 @@
         <p style="font-size: 0.9rem; margin-bottom: 0;">Teile diese ID in den sozialen Medien, um deinen Beitrag zum Klimaschutz zu zeigen!</p>
       </div>
 
-      <!-- UNSICHTBARES TEMPLATE FÜR DAS HOCHWERTIGE PDF (Issue #12 & #13) -->
-      <div style="display: none;">
-        <div id="pdfTemplate" style="width: 1050px; height: 740px; padding: 60px; background: #050a07; color: #EAF0E4; font-family: 'IBM Plex Sans', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
-          
-          <!-- Deko-Elemente im Hintergrund -->
-          <div style="position: absolute; top: -150px; right: -150px; width: 400px; height: 400px; background: rgba(127, 176, 105, 0.04); border-radius: 50%; pointer-events: none;"></div>
-          <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: rgba(232, 197, 71, 0.03); border-radius: 50%; pointer-events: none;"></div>
-          
-          <!-- Eleganter Doppel-Rahmen -->
-          <div style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px solid #1C3324; pointer-events: none; border-radius: 4px;"></div>
-          <div style="position: absolute; top: 30px; left: 30px; right: 30px; bottom: 30px; border: 1px solid #A7C957; pointer-events: none; border-radius: 2px;"></div>
-
-          <!-- Header -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; position: relative; z-index: 10;">
-            <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: bold; color: #EAF0E4; display: flex; align-items: center; gap: 8px;">
-              <span style="color: #A7C957; font-family: 'IBM Plex Mono', monospace;">&#123;&#125;</span> code4trees
-            </div>
-            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #7FB069; letter-spacing: 2px;">
-              // CERTIFICATE OF ENVIRONMENTAL IMPACT
-            </div>
+      <!-- DIE SUBMIT INPUT BOXEN (HIER WAR DER FEHLER) -->
+      <div class="form-grid">
+        <div class="field">
+          <label for="name">Dein Vorname (oder Nickname)</label>
+          <input type="text" id="name" name="name" required placeholder="z.B. Alex">
+        </div>
+        <div class="field">
+          <label for="project">Projektname</label>
+          <input type="text" id="project" name="project" required placeholder="z.B. Wetter-App">
+        </div>
+        
+        <div class="field dropzone-container">
+          <div class="dropzone" id="dropzone" role="button" tabindex="0">
+            <span class="sprout" aria-hidden="true">📁</span>
+            <strong>Zip hierher ziehen oder klicken</strong>
+            <small>Max. 50 MB (z.B. Python, Web, Java...)</small>
+            <input type="file" id="zipfile" name="zipfile" accept=".zip,application/zip" required>
+            <div class="file-chosen" id="fileChosen"></div>
           </div>
-
-          <!-- Hauptinhalt -->
-          <div style="text-align: center; margin-top: 40px; position: relative; z-index: 10;">
-            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #E8C547; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px;">
-              OFFIZIELLE BESTÄTIGUNG
-            </div>
-            
-            <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 48px; font-weight: 800; color: #EAF0E4; margin: 0 0 30px 0; letter-spacing: -1px;">
-              Urkunde über nachhaltigen Code
-            </h1>
-            
-            <p style="font-size: 20px; color: #B8C6B0; max-width: 750px; margin: 0 auto 50px auto; line-height: 1.7; font-weight: 400;">
-              Hiermit wird feierlich zertifiziert, dass <strong id="pdfName" style="color: #FFF; border-bottom: 2px solid #A7C957; padding-bottom: 2px;">[Name]</strong> das Code-Projekt 
-              <strong id="pdfProject" style="color: #A7C957;">[Projekt]</strong> erfolgreich über die KI-Validierung eingereicht hat. Dieser technologische Beitrag erfüllt die Kriterien für Green-Tech-Education und finanziert die Pflanzung von 1 echten Baum im Campuswald.
-            </p>
-          </div>
-
-          <!-- Footer Bereich mit ID und Stempel -->
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; position: absolute; bottom: 70px; left: 70px; right: 70px; z-index: 10;">
-            
-            <!-- Baum ID Bereich -->
-            <div style="text-align: left;">
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7FB069; margin-bottom: 8px;">VERIFIZIERTE BAUM-ID:</div>
-              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: bold; color: #E8C547; background: #14251A; padding: 10px 18px; border-radius: 4px; border: 1px solid #1C3324; letter-spacing: 1px;" id="pdfTreeId">
-                TREE-XXXX-XXXX
-              </div>
-            </div>
-
-            <!-- Interner Validierungs-Stempel -->
-            <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B8C6B0; line-height: 1.5;">
-              <div style="color: #A7C957; font-weight: bold;">✓ VERIFIED BY AI</div>
-              <div>STATUS: ACTIVE / PLANTED</div>
-              <div style="font-size: 11px; margin-top: 4px; color: #7FB069;">CAMPUS YEAR: 2026</div>
-            </div>
-
-          </div>
-
         </div>
       </div>
 
       <div class="review-console" id="reviewConsole"></div>
 
       <!-- Gamified Submit Button -->
-
       <button type="submit" class="gamified-btn" id="submitCodeBtn">
         <div class="btn-bg"></div>
         <span class="btn-icon">🌱</span>
         <span class="btn-text">Projekt-Archiv als Samen pflanzen</span>
       </button>
       
-      </form>
-    
-      
+    </form>
   </section>
 </main>
+
+<!-- UNSICHTBARES TEMPLATE FÜR DAS BRAND-PDF (Zwecks HTML-Validität außerhalb des Forms platziert) -->
+<div style="display: none;">
+  <div id="pdfTemplate" style="width: 1050px; height: 740px; padding: 60px; background: #050a07; color: #EAF0E4; font-family: 'IBM Plex Sans', sans-serif; position: relative; box-sizing: border-box; overflow: hidden;">
+    <div style="position: absolute; top: -150px; right: -150px; width: 400px; height: 400px; background: rgba(127, 176, 105, 0.04); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -100px; left: -100px; width: 300px; height: 300px; background: rgba(232, 197, 71, 0.03); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px solid #1C3324; pointer-events: none; border-radius: 4px;"></div>
+    <div style="position: absolute; top: 30px; left: 30px; right: 30px; bottom: 30px; border: 1px solid #A7C957; pointer-events: none; border-radius: 2px;"></div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; position: relative; z-index: 10;">
+      <div style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: bold; color: #EAF0E4; display: flex; align-items: center; gap: 8px;">
+        <span style="color: #A7C957; font-family: 'IBM Plex Mono', monospace;">&#123;&#125;</span> code4trees
+      </div>
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #7FB069; letter-spacing: 2px;">
+        // CERTIFICATE OF ENVIRONMENTAL IMPACT
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; position: relative; z-index: 10;">
+      <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #E8C547; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 15px;">
+        OFFIZIELLE BESTÄTIGUNG
+      </div>
+      <h1 style="font-family: 'Bricolage Grotesque', sans-serif; font-size: 48px; font-weight: 800; color: #EAF0E4; margin: 0 0 30px 0; letter-spacing: -1px;">
+        Urkunde über nachhaltigen Code
+      </h1>
+      <p style="font-size: 20px; color: #B8C6B0; max-width: 750px; margin: 0 auto 50px auto; line-height: 1.7; font-weight: 400;">
+        Hiermit wird feierlich zertifiziert, dass <strong id="pdfName" style="color: #FFF; border-bottom: 2px solid #A7C957; padding-bottom: 2px;">[Name]</strong> das Code-Projekt 
+        <strong id="pdfProject" style="color: #A7C957;">[Projekt]</strong> erfolgreich über die KI-Validierung eingereicht hat. Dieser technologische Beitrag erfüllt die Kriterien für Green-Tech-Education und finanziert die Pflanzung von 1 echten Baum im Campuswald.
+      </p>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; position: absolute; bottom: 70px; left: 70px; right: 70px; z-index: 10;">
+      <div style="text-align: left;">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #7FB069; margin-bottom: 8px;">VERIFIZIERTE BAUM-ID:</div>
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: bold; color: #E8C547; background: #14251A; padding: 10px 18px; border-radius: 4px; border: 1px solid #1C3324; letter-spacing: 1px;" id="pdfTreeId">
+          TREE-XXXX-XXXX
+        </div>
+      </div>
+      <div style="text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #B8C6B0; line-height: 1.5;">
+        <div style="color: #A7C957; font-weight: bold;">✓ VERIFIED BY AI</div>
+        <div>STATUS: ACTIVE / PLANTED</div>
+        <div style="font-size: 11px; margin-top: 4px; color: #7FB069;">CAMPUS YEAR: 2026</div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <footer>
   <div class="footer-inner">
@@ -219,7 +220,6 @@
       <span class="separator">|</span>
       <a href="./datenschutz.html">Datenschutz</a>
     </div>
-    
     <div class="footer-right">
       <span>Made by Students, for Students 💚</span>
     </div>
