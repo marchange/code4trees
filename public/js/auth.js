@@ -77,14 +77,57 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'index.html';
   }
 
+  // =====================================================================
+  // --- Auth-Modal: Öffnen / Schließen (nur auf index.html vorhanden) ---
+  // =====================================================================
+
+  const authModal    = document.getElementById('authModal');
+  const closeAuthBtn = document.getElementById('closeAuthBtn');
+
+  function openAuthModal() {
+    if (!authModal) return;
+    authModal.style.display = 'flex';
+    authModal.setAttribute('aria-hidden', 'false');
+    clearAuthMessage();
+    loadSetupData(); // no-op außerhalb von registrieren.html/Modal ohne Uni-Dropdown
+  }
+
+  function closeAuthModal() {
+    if (!authModal) return;
+    authModal.style.display = 'none';
+    authModal.setAttribute('aria-hidden', 'true');
+  }
+
+  if (closeAuthBtn) closeAuthBtn.addEventListener('click', closeAuthModal);
+
+  if (authModal) {
+    authModal.addEventListener('click', (e) => {
+      if (e.target === authModal) closeAuthModal();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && authModal && authModal.style.display === 'flex') {
+      closeAuthModal();
+    }
+  });
+
   // Dropdown öffnen/schließen: Klick auf den Nav-Button togglet nur, wenn eingeloggt.
-  // Ist niemand eingeloggt, läuft der Button/Link ganz normal weiter (Modal öffnen bzw. zu login.html/registrieren.html navigieren).
+  // Ist niemand eingeloggt, öffnet der Klick stattdessen das Login-Modal (index.html)
+  // bzw. läuft als normale Navigation zu login.html/registrieren.html weiter.
   if (authNavBtn) {
     authNavBtn.addEventListener('click', (e) => {
-      if (authNavBtn.dataset.loggedIn !== 'true') return;
-      e.preventDefault();
-      const isOpen = authDropdown && !authDropdown.hidden;
-      if (authDropdown) authDropdown.hidden = isOpen;
+      if (authNavBtn.dataset.loggedIn === 'true') {
+        e.preventDefault();
+        const isOpen = authDropdown && !authDropdown.hidden;
+        if (authDropdown) authDropdown.hidden = isOpen;
+        return;
+      }
+      if (authModal) {
+        e.preventDefault();
+        openAuthModal();
+      }
+      // sonst: normale Navigation (login.html / registrieren.html)
     });
   }
 
@@ -98,6 +141,16 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', (e) => {
       e.preventDefault();
       logoutUser();
+    });
+  }
+
+  // Sicherheitsnetz: "Jetzt registrieren"-Link im index.html-Modal garantiert
+  // zu registrieren.html schicken, egal was script.js sonst mit Modal-Klicks macht.
+  const toRegisterLink = document.getElementById('toRegisterLink');
+  if (toRegisterLink) {
+    toRegisterLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.location.href = 'registrieren.html';
     });
   }
 
@@ -298,8 +351,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (response.ok && data.status === 'success') {
           applyLoggedInUser(data.user);
-          const redirectTarget = params.get('redirect') || 'index.html';
-          window.location.href = redirectTarget;
+          showAuthMessage(data.message || 'Login erfolgreich!');
+          if (currentPage === 'home' && authModal) {
+            // Im Modal auf index.html: nur schließen, keine harte Navigation nötig.
+            setTimeout(closeAuthModal, 700);
+            setAuthBusy(loginForm, false, 'Anmeldung läuft…', 'Einloggen');
+          } else {
+            const redirectTarget = params.get('redirect') || 'index.html';
+            window.location.href = redirectTarget;
+          }
         } else {
           showAuthMessage(data.message || 'Login fehlgeschlagen. Bitte Zugangsdaten prüfen.', true);
           setAuthBusy(loginForm, false, 'Anmeldung läuft…', 'Einloggen');
