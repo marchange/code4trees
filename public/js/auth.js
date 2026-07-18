@@ -46,12 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyLoggedInUser(user) {
     if (!user) return;
     window.currentUser = user;
-
-    // Nickname automatisch ins Einreich-Formular übernehmen (nur auf index.html vorhanden)
-    const nameField = document.getElementById('name');
-    if (nameField && user.username) {
-      nameField.value = user.username;
+  
+    const submitAsUserEl = document.getElementById('submitAsUser');
+    if (submitAsUserEl && user.username) {
+      submitAsUserEl.textContent = `👤 ${user.username}`;
     }
+  
 
     if (authNavBtn) {
       authNavBtn.textContent = `👤 ${user.username} ▾`;

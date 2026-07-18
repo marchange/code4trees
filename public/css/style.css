@@ -177,6 +177,15 @@ header {
   color: #ffffff;
 }
 
+.field-readonly {
+  padding: 14px 16px;
+  background: rgba(11, 21, 16, 0.5);
+  border: 1px solid var(--pine-700);
+  border-radius: 8px;
+  color: var(--paper-dim);
+  font-family: var(--mono);
+}
+
 /* ---------- Hero ---------- */
 .hero {
   max-width: 1100px; 
