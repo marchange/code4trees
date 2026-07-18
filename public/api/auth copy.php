@@ -145,6 +145,7 @@ switch ($action) {
     // -----------------------------------------------------------------
     // LOGIN
     // -----------------------------------------------------------------
+    
     case 'login': {
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transparenz — code4trees</title>
+<meta name="description" content="Ehrliche Zahlen: wie viele eingereichte Projekte sind bereits zu echten Bäumen geworden.">
+
+<link rel="icon" type="image/jpeg" href="assets/icon.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+<script src="js/script.js"></script>
+<script src="js/auth.js"></script>
+</head>
+<body data-page="transparency">
+
+<div class="ambient-bg"></div>
+<div class="floating-code" id="floatingCodeContainer"></div>
+
+<header>
+  <a class="logo" href="index.html">
+    <span class="glyph">&#123;&#125;</span> code4trees
+  </a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="training.html">Code-Arena</a>
+    <a href="transparenz.html" class="active">Transparenz</a>
+    <div class="auth-nav-wrapper" id="authNavWrapper">
+      <button type="button" id="authNavBtn" class="auth-nav-btn">Login / Registrieren</button>
+      <div class="auth-dropdown" id="authDropdown" hidden>
+        <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
+        <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="transparency-layout">
+    <div>
+      <div class="eyebrow">// Ehrliche Zahlen</div>
+      <h1 style="margin:4px 0 0;">Vom Code zum Baum</h1>
+      <p class="lead">Nicht jedes eingereichte Projekt ist sofort ein Baum in der Erde. Hier siehst du transparent, wo unsere Bäume gerade stehen — vom eingereichten Code bis zur echten Pflanzung.</p>
+    </div>
+
+    <div id="transparencyError" class="auth-message" style="display:none;"></div>
+
+    <div class="status-funnel" id="statusFunnel">
+      <div class="status-row is-submitted">
+        <span class="status-icon">📥</span>
+        <div class="status-info">
+          <div class="status-label">Eingereicht</div>
+          <div class="status-desc">Projekt wurde verifiziert, Baum ist reserviert.</div>
+        </div>
+        <div class="status-count" id="countSubmitted">–</div>
+      </div>
+      <div class="status-row is-sourcing">
+        <span class="status-icon">🚚</span>
+        <div class="status-info">
+          <div class="status-label">In Beschaffung</div>
+          <div class="status-desc">Baum wird bei unserem Pflanzpartner vorbereitet.</div>
+        </div>
+        <div class="status-count" id="countSourcing">–</div>
+      </div>
+      <div class="status-row is-planted">
+        <span class="status-icon">🌳</span>
+        <div class="status-info">
+          <div class="status-label">Gepflanzt</div>
+          <div class="status-desc">Der Baum steht in der Erde.</div>
+        </div>
+        <div class="status-count" id="countPlanted">–</div>
+      </div>
+    </div>
+
+    <div class="transparency-note">
+      <strong>Wie diese Zahlen entstehen:</strong> Aktuell durchläuft jeder eingereichte
+      Baum die Stufen automatisiert nach einer geschätzten Zeitspanne, solange wir noch
+      keinen direkten, tree_id-genauen Bestätigungs-Import von unserem Pflanzpartner
+      haben. Das heißt: "Gepflanzt" ist derzeit eine sehr wahrscheinliche Schätzung,
+      noch keine Einzelbestätigung pro Baum. Sobald wir einen Pflanzpartner mit echter
+      Rückmeldung pro Baum haben, kommunizieren wir das hier und stellen auf echte
+      Bestätigungen um.
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <span>© 2026 code4trees.org – Gamified Education.</span>
+      <a href="./impressum.html">Impressum</a>
+      <span class="separator">|</span>
+      <a href="./datenschutz.html">Datenschutz</a>
+    </div>
+    <div class="footer-right">
+      <span>Made by Students, for Students 💚</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (async function loadTransparencyData() {
+    const errorEl = document.getElementById('transparencyError');
+    try {
+      const response = await fetch('api/transparency.php', { cache: 'no-store' });
+      const data = await response.json();
+
+      if (!response.ok || data.status !== 'success') {
+        throw new Error(data.message || 'Unbekannter Fehler');
+      }
+
+      document.getElementById('countSubmitted').textContent = data.counts.submitted.toLocaleString('de-AT');
+      document.getElementById('countSourcing').textContent = data.counts.sourcing.toLocaleString('de-AT');
+      document.getElementById('countPlanted').textContent = data.counts.planted.toLocaleString('de-AT');
+    } catch (error) {
+      console.error('Transparenz-Daten konnten nicht geladen werden:', error);
+      if (errorEl) {
+        errorEl.textContent = 'Die Zahlen konnten gerade nicht geladen werden. Bitte versuch es später erneut.';
+        errorEl.style.display = 'block';
+        errorEl.style.color = '#FF5F56';
+      }
+    }
+  })();
+</script>
+
+</body>
+</html>
