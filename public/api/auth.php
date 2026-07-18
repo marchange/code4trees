@@ -145,6 +145,9 @@ switch ($action) {
 // -----------------------------------------------------------------
 // UPDATE PROFILE (Nickname, E-Mail, Universität, Fakultät)
 // -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// UPDATE PROFILE (Nickname, E-Mail, Universität, Fakultät)
+// -----------------------------------------------------------------
 case 'update_profile': {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
@@ -174,11 +177,37 @@ case 'update_profile': {
         respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
     }
 
+    // Aktuelle E-Mail holen, um zu erkennen, ob sie sich überhaupt ändert.
+    $currentStmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
+    $currentStmt->execute([$_SESSION['user_id']]);
+    $currentEmail = $currentStmt->fetchColumn();
+
+    $emailChanged = strcasecmp((string)$currentEmail, $email) !== 0;
+
     try {
-        $stmt = $pdo->prepare(
-            'UPDATE users SET username = ?, email = ?, university_id = ?, faculty_id = ? WHERE id = ?'
-        );
-        $stmt->execute([$username, $email, $uniId, $facultyId, $_SESSION['user_id']]);
+        if ($emailChanged) {
+            // E-Mail ändert sich: Verifizierung zurücksetzen, neuer Token, neue Mail.
+            $verificationToken = bin2hex(random_bytes(32));
+            $tokenExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+            $stmt = $pdo->prepare(
+                'UPDATE users
+                 SET username = ?, email = ?, university_id = ?, faculty_id = ?,
+                     email_verified = 0, verification_token = ?, verification_token_expires = ?
+                 WHERE id = ?'
+            );
+            $stmt->execute([
+                $username, $email, $uniId, $facultyId,
+                $verificationToken, $tokenExpires,
+                $_SESSION['user_id']
+            ]);
+        } else {
+            // E-Mail bleibt gleich: Verifizierungsstatus unangetastet lassen.
+            $stmt = $pdo->prepare(
+                'UPDATE users SET username = ?, email = ?, university_id = ?, faculty_id = ? WHERE id = ?'
+            );
+            $stmt->execute([$username, $email, $uniId, $facultyId, $_SESSION['user_id']]);
+        }
 
         // Session-Werte synchron halten mit den neuen Daten.
         $_SESSION['username']      = $username;
@@ -189,9 +218,30 @@ case 'update_profile': {
         $stmt->execute([$_SESSION['user_id']]);
         $updatedUser = $stmt->fetch();
 
+        $message = 'Profil erfolgreich aktualisiert!';
+        if ($emailChanged) {
+            // Mail-Versand NACH der Response, wie bei der Registrierung — Profil-Update
+            // soll nicht auf den Mailversand warten müssen.
+            $message = 'Profil aktualisiert! Bitte bestätige deine neue E-Mail-Adresse über den Link, den wir dir geschickt haben.';
+
+            http_response_code(200);
+            echo json_encode([
+                'status'  => 'success',
+                'message' => $message,
+                'user'    => currentUserPublic($updatedUser),
+            ], JSON_UNESCAPED_UNICODE);
+
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+
+            sendVerificationEmail($email, $username, $verificationToken);
+            exit;
+        }
+
         respond(200, [
             'status'  => 'success',
-            'message' => 'Profil erfolgreich aktualisiert!',
+            'message' => $message,
             'user'    => currentUserPublic($updatedUser),
         ]);
     } catch (PDOException $e) {
@@ -203,7 +253,6 @@ case 'update_profile': {
     }
     break;
 }
-
 // -----------------------------------------------------------------
 // UPDATE PASSWORD
 // -----------------------------------------------------------------
