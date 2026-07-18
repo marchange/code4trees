@@ -24,7 +24,6 @@ jobs:
         pass: ${{ secrets.SFTP_PASSWORD }}
         port: 22
         localDir: './public'
-        remoteDir: ${{ github.ref_name == 'main' && '/public' || '/dev' }}
-        reverse: true
+        remoteDir: ${{ github.ref_name == 'main' && '/public' || format('/{0}', github.ref_name) }}        reverse: true
         options: '--delete'
         ignoreFile: '.lftp_ignore'
