@@ -1843,7 +1843,7 @@ footer {
   .auth-dropdown-item:hover{
     background:rgba(127,176,105,0.18);
   }
-  
+
   .auth-dropdown-item--danger:hover{
     background:rgba(255,95,86,0.18); color:#FF8A82;
   }
@@ -1880,8 +1880,9 @@ footer {
 
   /* This class is toggled by your existing JavaScript */
   .nav.open {
-    max-height: 500px; /* Expands downwards smoothly */
+    max-height: 800px;
     padding-top: 15px;
+    padding-bottom: 20px;
   }
 
   .nav a, .auth-nav-btn {
