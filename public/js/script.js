@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     //Close menu when clicking a link
-    const navLinks = navMenu.querySelectorAll('a:not(.auth-dropdown-item)');
+    const navLinks = navMenu.querySelectorAll('a:not(.auth-dropdown-item):not(.auth-nav-btn)');
     navLinks.forEach(link => {
       link.addEventListener('click', () => {
         navMenu.classList.remove('open');
