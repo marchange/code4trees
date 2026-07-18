@@ -5,6 +5,10 @@
 
 declare(strict_types=1);
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+
 header('Content-Type: application/json');
 
 // Sessions müssen VOR jedem Output gestartet werden.
@@ -220,13 +224,9 @@ case 'update_profile': {
 
         $message = 'Profil erfolgreich aktualisiert!';
         if ($emailChanged) {
+            // Mail-Versand NACH der Response, wie bei der Registrierung — Profil-Update
+            // soll nicht auf den Mailversand warten müssen.
             $message = 'Profil aktualisiert! Bitte bestätige deine neue E-Mail-Adresse über den Link, den wir dir geschickt haben.';
-            // ... Mail-Versand wie bisher
-        } elseif ((int)$updatedUser['email_verified'] === 0) {
-            // E-Mail hat sich in DIESEM Request nicht geändert, aber ist noch nicht bestätigt
-            // (z.B. zweiter Speichern-Klick, ohne dass der User den Link geklickt hat).
-            $message = 'Profil aktualisiert. Deine E-Mail-Adresse ist noch nicht bestätigt — schau in dein Postfach nach dem Bestätigungslink.';
-        }
 
             http_response_code(200);
             echo json_encode([
