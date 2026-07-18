@@ -142,6 +142,139 @@ switch ($action) {
         break;
     }
 
+// -----------------------------------------------------------------
+// UPDATE PROFILE (Nickname, E-Mail, Universität, Fakultät)
+// -----------------------------------------------------------------
+case 'update_profile': {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+    }
+    if (empty($_SESSION['user_id'])) {
+        respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+    }
+
+    $username  = trim((string)($_POST['username'] ?? ''));
+    $email     = trim((string)($_POST['email'] ?? ''));
+    $uniId     = (int)($_POST['university_id'] ?? 0);
+    $facultyId = (int)($_POST['faculty_id'] ?? 0);
+
+    if ($username === '' || $email === '' || $uniId <= 0 || $facultyId <= 0) {
+        respond(400, ['status' => 'error', 'message' => 'Bitte alle Pflichtfelder ausfüllen.']);
+    }
+    if (mb_strlen($username) < 3 || mb_strlen($username) > 50) {
+        respond(400, ['status' => 'error', 'message' => 'Nickname muss zwischen 3 und 50 Zeichen lang sein.']);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        respond(400, ['status' => 'error', 'message' => 'Bitte eine gültige E-Mail-Adresse angeben.']);
+    }
+
+    $checkStmt = $pdo->prepare('SELECT id FROM faculties WHERE id = ? AND university_id = ?');
+    $checkStmt->execute([$facultyId, $uniId]);
+    if (!$checkStmt->fetch()) {
+        respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
+    }
+
+    try {
+        $stmt = $pdo->prepare(
+            'UPDATE users SET username = ?, email = ?, university_id = ?, faculty_id = ? WHERE id = ?'
+        );
+        $stmt->execute([$username, $email, $uniId, $facultyId, $_SESSION['user_id']]);
+
+        // Session-Werte synchron halten mit den neuen Daten.
+        $_SESSION['username']      = $username;
+        $_SESSION['university_id'] = $uniId;
+        $_SESSION['faculty_id']    = $facultyId;
+
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        $updatedUser = $stmt->fetch();
+
+        respond(200, [
+            'status'  => 'success',
+            'message' => 'Profil erfolgreich aktualisiert!',
+            'user'    => currentUserPublic($updatedUser),
+        ]);
+    } catch (PDOException $e) {
+        if ($e->getCode() === '23000') {
+            respond(409, ['status' => 'error', 'message' => 'Nickname oder E-Mail ist bereits vergeben.']);
+        }
+        error_log('auth.php update_profile error: ' . $e->getMessage());
+        respond(500, ['status' => 'error', 'message' => 'Profil konnte nicht aktualisiert werden.']);
+    }
+    break;
+}
+
+// -----------------------------------------------------------------
+// UPDATE PASSWORD
+// -----------------------------------------------------------------
+case 'update_password': {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+    }
+    if (empty($_SESSION['user_id'])) {
+        respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+    }
+
+    $currentPassword = (string)($_POST['current_password'] ?? '');
+    $newPassword     = (string)($_POST['new_password'] ?? '');
+
+    if ($currentPassword === '' || $newPassword === '') {
+        respond(400, ['status' => 'error', 'message' => 'Bitte alle Felder ausfüllen.']);
+    }
+    if (strlen($newPassword) < 8) {
+        respond(400, ['status' => 'error', 'message' => 'Neues Passwort muss mindestens 8 Zeichen lang sein.']);
+    }
+
+    $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+    $stmt->execute([$_SESSION['user_id']]);
+    $user = $stmt->fetch();
+
+    if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+        respond(401, ['status' => 'error', 'message' => 'Aktuelles Passwort ist falsch.']);
+    }
+
+    $newHash = password_hash($newPassword, PASSWORD_ARGON2ID);
+
+    try {
+        $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+        $stmt->execute([$newHash, $_SESSION['user_id']]);
+
+        respond(200, ['status' => 'success', 'message' => 'Passwort erfolgreich geändert!']);
+    } catch (PDOException $e) {
+        error_log('auth.php update_password error: ' . $e->getMessage());
+        respond(500, ['status' => 'error', 'message' => 'Passwort konnte nicht geändert werden.']);
+    }
+    break;
+}
+
+// -----------------------------------------------------------------
+// DELETE ACCOUNT
+// -----------------------------------------------------------------
+case 'delete_account': {
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+    }
+    if (empty($_SESSION['user_id'])) {
+        respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+    }
+
+    try {
+        // tree_records.user_id hat ON DELETE SET NULL (laut Übergabe-Doku) —
+        // gepflanzte Bäume bleiben also erhalten, nur die Zuordnung zum User verschwindet.
+        $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+
+        $_SESSION = [];
+        session_destroy();
+
+        respond(200, ['status' => 'success', 'message' => 'Account erfolgreich gelöscht.']);
+    } catch (PDOException $e) {
+        error_log('auth.php delete_account error: ' . $e->getMessage());
+        respond(500, ['status' => 'error', 'message' => 'Account konnte nicht gelöscht werden.']);
+    }
+    break;
+}
+
     // -----------------------------------------------------------------
     // LOGIN
     // -----------------------------------------------------------------
