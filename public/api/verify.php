@@ -1,6 +1,8 @@
 <?php
 // api/verify.php
-// Nimmt den Bestätigungslink aus der E-Mail entgegen und aktiviert den Account.
+// Nimmt den Bestätigungslink aus der E-Mail entgegen.
+// Zwei Fälle: (1) frische Registrierung -> email_verified wird gesetzt,
+// (2) E-Mail-Änderung -> pending_email wird zur aktiven email übernommen.
 
 declare(strict_types=1);
 
@@ -40,7 +42,9 @@ if ($token === '') {
     showResult('Ungültiger Link', 'Es wurde kein Bestätigungs-Token übergeben.', false);
 }
 
-$stmt = $pdo->prepare('SELECT id, email_verified, verification_token_expires FROM users WHERE verification_token = ?');
+$stmt = $pdo->prepare(
+    'SELECT id, email_verified, pending_email, verification_token_expires FROM users WHERE verification_token = ?'
+);
 $stmt->execute([$token]);
 $user = $stmt->fetch();
 
@@ -48,12 +52,28 @@ if (!$user) {
     showResult('Ungültiger Link', 'Dieser Bestätigungslink ist ungültig oder wurde bereits verwendet.', false);
 }
 
-if ((int)$user['email_verified'] === 1) {
-    showResult('Bereits bestätigt', 'Diese E-Mail-Adresse wurde bereits bestätigt. Du kannst dich jetzt einloggen.', true);
+if (strtotime($user['verification_token_expires']) < time()) {
+    showResult('Link abgelaufen', 'Dieser Bestätigungslink ist abgelaufen. Bitte fordere einen neuen Link an.', false);
 }
 
-if (strtotime($user['verification_token_expires']) < time()) {
-    showResult('Link abgelaufen', 'Dieser Bestätigungslink ist abgelaufen. Bitte registriere dich erneut oder fordere einen neuen Link an.', false);
+$hasPendingEmailChange = !empty($user['pending_email']);
+
+if ($hasPendingEmailChange) {
+    // Fall 2: E-Mail-Änderung bestätigen — pending_email wird zur aktiven E-Mail.
+    $updateStmt = $pdo->prepare(
+        'UPDATE users
+         SET email = pending_email, pending_email = NULL,
+             email_verified = 1, verification_token = NULL, verification_token_expires = NULL
+         WHERE id = ?'
+    );
+    $updateStmt->execute([$user['id']]);
+
+    showResult('E-Mail geändert!', 'Deine neue E-Mail-Adresse wurde bestätigt und ist jetzt aktiv.', true);
+}
+
+// Fall 1: frische Registrierung bestätigen.
+if ((int)$user['email_verified'] === 1) {
+    showResult('Bereits bestätigt', 'Diese E-Mail-Adresse wurde bereits bestätigt. Du kannst dich jetzt einloggen.', true);
 }
 
 $updateStmt = $pdo->prepare(

@@ -146,11 +146,10 @@ switch ($action) {
         break;
     }
 
+
 // -----------------------------------------------------------------
-// UPDATE PROFILE (Nickname, E-Mail, Universität, Fakultät)
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-// UPDATE PROFILE (Nickname, E-Mail, Universität, Fakultät)
+// UPDATE PROFILE (Nickname, Fakultät sofort; E-Mail-Änderung erst nach
+// Bestätigung aktiv — landet bis dahin in pending_email, nicht in email)
 // -----------------------------------------------------------------
 case 'update_profile': {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -181,7 +180,8 @@ case 'update_profile': {
         respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
     }
 
-    // Aktuelle E-Mail holen, um zu erkennen, ob sie sich überhaupt ändert.
+    // Aktuelle, BESTÄTIGTE E-Mail aus der DB holen — nicht die Formular-Eingabe,
+    // sonst könnte man mit einem zweiten Klick den Vergleich austricksen.
     $currentStmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
     $currentStmt->execute([$_SESSION['user_id']]);
     $currentEmail = $currentStmt->fetchColumn();
@@ -190,30 +190,30 @@ case 'update_profile': {
 
     try {
         if ($emailChanged) {
-            // E-Mail ändert sich: Verifizierung zurücksetzen, neuer Token, neue Mail.
+            // Neue Adresse geht NUR in pending_email, die aktive email-Spalte
+            // bleibt unverändert, bis der Bestätigungslink geklickt wurde.
             $verificationToken = bin2hex(random_bytes(32));
             $tokenExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
             $stmt = $pdo->prepare(
                 'UPDATE users
-                 SET username = ?, email = ?, university_id = ?, faculty_id = ?,
-                     email_verified = 0, verification_token = ?, verification_token_expires = ?
+                 SET username = ?, university_id = ?, faculty_id = ?,
+                     pending_email = ?, verification_token = ?, verification_token_expires = ?
                  WHERE id = ?'
             );
             $stmt->execute([
-                $username, $email, $uniId, $facultyId,
-                $verificationToken, $tokenExpires,
+                $username, $uniId, $facultyId,
+                $email, $verificationToken, $tokenExpires,
                 $_SESSION['user_id']
             ]);
         } else {
-            // E-Mail bleibt gleich: Verifizierungsstatus unangetastet lassen.
+            // Keine E-Mail-Änderung: normales Update, pending_email bleibt wie es ist.
             $stmt = $pdo->prepare(
-                'UPDATE users SET username = ?, email = ?, university_id = ?, faculty_id = ? WHERE id = ?'
+                'UPDATE users SET username = ?, university_id = ?, faculty_id = ? WHERE id = ?'
             );
-            $stmt->execute([$username, $email, $uniId, $facultyId, $_SESSION['user_id']]);
+            $stmt->execute([$username, $uniId, $facultyId, $_SESSION['user_id']]);
         }
 
-        // Session-Werte synchron halten mit den neuen Daten.
         $_SESSION['username']      = $username;
         $_SESSION['university_id'] = $uniId;
         $_SESSION['faculty_id']    = $facultyId;
@@ -224,9 +224,7 @@ case 'update_profile': {
 
         $message = 'Profil erfolgreich aktualisiert!';
         if ($emailChanged) {
-            // Mail-Versand NACH der Response, wie bei der Registrierung — Profil-Update
-            // soll nicht auf den Mailversand warten müssen.
-            $message = 'Profil aktualisiert! Bitte bestätige deine neue E-Mail-Adresse über den Link, den wir dir geschickt haben.';
+            $message = 'Profil aktualisiert! Deine bisherige E-Mail-Adresse bleibt aktiv, bis du die neue über den zugeschickten Link bestätigst.';
 
             http_response_code(200);
             echo json_encode([
