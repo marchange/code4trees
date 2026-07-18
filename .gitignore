@@ -1,1 +1,16 @@
 tree_count.txt
+rate_limits.json
+data/records.json
+
+# Composer
+
+# Environment
+.env
+
+# Local data
+/data/*.txt
+/data/*.json
+
+# OS
+.DS_Store
+Thumbs.db

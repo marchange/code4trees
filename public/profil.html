@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mein Profil — code4trees</title>
+<meta name="description" content="Verwalte deine code4trees-Kontodaten: Nickname, E-Mail, Universität und Passwort.">
+
+<link rel="icon" type="image/jpeg" href="assets/icon.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+<script src="js/script.js"></script>
+<script src="js/auth.js"></script>
+
+<style>
+  .profile-layout{
+    max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:24px;
+  }
+  .profile-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .profile-stat{
+    display:flex; align-items:baseline; gap:8px; font-family:var(--mono, monospace);
+    color:var(--leaf, #7FB069);
+  }
+  .profile-stat strong{ font-size:1.6rem; }
+  .form-card h3{ margin-top:0; }
+  .form-section-label{
+    font-family:var(--mono, monospace); font-size:0.78rem; letter-spacing:0.04em;
+    text-transform:uppercase; color:var(--leaf, #7FB069); margin:0 0 6px;
+  }
+  .danger-zone{
+    border:1px solid rgba(255,95,86,0.35); border-radius:10px; padding:18px;
+  }
+  .danger-zone p{ font-size:0.9rem; opacity:0.85; margin-top:0; }
+  .btn-danger{
+    background:transparent; border:1px solid #FF5F56; color:#FF5F56;
+    padding:10px 16px; border-radius:6px; cursor:pointer; font:inherit;
+  }
+  .btn-danger:hover{ background:rgba(255,95,86,0.12); }
+</style>
+</head>
+<body data-page="profile">
+
+<div class="ambient-bg"></div>
+<div class="floating-code" id="floatingCodeContainer"></div>
+
+<header>
+  <a class="logo" href="index.html">
+    <span class="glyph">&#123;&#125;</span> code4trees
+  </a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="training.html">Code-Arena</a>
+    <a href="transparenz.html">Transparenz</a>
+    <div class="auth-nav-wrapper" id="authNavWrapper">
+      <button type="button" id="authNavBtn" class="auth-nav-btn">Login / Registrieren</button>
+      <div class="auth-dropdown" id="authDropdown" hidden>
+        <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
+        <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .auth-nav-wrapper{position:relative;display:inline-block;}
+  .auth-dropdown{
+    position:absolute; right:0; top:calc(100% + 8px); min-width:190px;
+    background:var(--pine-950,#0f1f16); border:1px solid rgba(127,176,105,0.35);
+    border-radius:10px; padding:6px; box-shadow:0 12px 28px rgba(0,0,0,0.35); z-index:50;
+  }
+  .auth-dropdown-item{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left;
+    background:none; border:none; color:#fff; font:inherit; font-size:0.92rem;
+    padding:9px 10px; border-radius:6px; cursor:pointer; text-decoration:none;
+  }
+  .auth-dropdown-item:hover{background:rgba(127,176,105,0.18);}
+  .auth-dropdown-item--danger:hover{background:rgba(255,95,86,0.18); color:#FF8A82;}
+</style>
+
+<main>
+  <div class="profile-layout">
+
+    <div class="profile-header">
+      <div>
+        <div class="eyebrow">// Dein Konto</div>
+        <h1 style="margin:4px 0 0;">Mein Profil</h1>
+      </div>
+      <div class="profile-stat">
+        🌳 <strong id="profileTreeCount">0</strong> <span>gepflanzte Bäume</span>
+      </div>
+    </div>
+
+    <div id="authMessage" class="auth-message" style="display:none;"></div>
+
+    <!-- Stammdaten -->
+    <div class="form-card">
+      <h3>Stammdaten</h3>
+      <form id="profileForm" novalidate>
+        <div class="form-grid">
+          <div class="field">
+            <label for="profileUsername">Nickname</label>
+            <input type="text" id="profileUsername" name="username" required minlength="3" maxlength="50">
+          </div>
+          <div class="field">
+            <label for="profileEmail">E-Mail</label>
+            <input type="email" id="profileEmail" name="email" required>
+          </div>
+          <div class="field">
+            <label for="profileUniversity">Universität</label>
+            <div class="field-readonly" id="profileUniversityDisplay">–</div>
+            <small class="field-hint">Die Universität kann nach der Registrierung nicht mehr geändert werden.</small>
+          </div>
+          <div class="field">
+            <label for="profileFaculty">Fakultät</label>
+            <select id="profileFaculty" name="faculty_id" required>
+              <option value="" disabled selected>Zuerst Universität wählen</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Änderungen speichern</button>
+      </form>
+    </div>
+
+    <!-- Passwort ändern -->
+    <div class="form-card">
+      <h3>Passwort ändern</h3>
+      <form id="passwordForm" novalidate>
+        <div class="form-grid">
+          <div class="field field-full">
+            <label for="currentPassword">Aktuelles Passwort</label>
+            <input type="password" id="currentPassword" name="current_password" required placeholder="••••••••">
+          </div>
+          <div class="field">
+            <label for="newPassword">Neues Passwort</label>
+            <input type="password" id="newPassword" name="new_password" required minlength="8" placeholder="Mind. 8 Zeichen">
+          </div>
+          <div class="field">
+            <label for="newPasswordRepeat">Neues Passwort wiederholen</label>
+            <input type="password" id="newPasswordRepeat" name="new_password_repeat" required minlength="8" placeholder="Mind. 8 Zeichen">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Passwort ändern</button>
+      </form>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="danger-zone">
+      <p class="form-section-label">Gefahrenzone</p>
+      <p>Löscht deinen Account und deinen Zugang unwiderruflich. Bereits gepflanzte Bäume bleiben Teil des gemeinsamen Walds.</p>
+      <button type="button" class="btn-danger" id="deleteAccountBtn">Account löschen</button>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-left">
+      <span>© 2026 code4trees.org – Gamified Education.</span>
+      <a href="./impressum.html">Impressum</a>
+      <span class="separator">|</span>
+      <a href="./datenschutz.html">Datenschutz</a>
+    </div>
+    <div class="footer-right">
+      <span>Made by Students, for Students 💚</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

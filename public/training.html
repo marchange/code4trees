@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeArena</title>
+<meta name="description" content="Professionelle Coding-Umgebung.">
+
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style_training.css">
+<script src="js/script_training.js"></script>
+
+</head>
+<body>
+
+<div class="ambient-bg"></div>
+<div class="floating-code" id="floatingCodeContainer"></div>
+
+<header>
+  <a class="logo" href="index.html">
+    <span class="glyph">&#123;&#125;</span> code4trees
+  </a>
+  <nav class="nav">
+    <a href="index.html">Dashboard</a>
+    <a href="training.html" class="active">Code-Arena</a>
+    <a href="transparenz.html">Transparenz</a>
+    <a href="index.html#einreichen">Einreichen</a>
+    <div class="auth-nav-wrapper" id="authNavWrapper">
+      <a href="registrieren.html" id="authNavBtn" class="auth-nav-btn">
+        Login / Registrieren
+    </a>
+      <div class="auth-dropdown" id="authDropdown" hidden>
+        <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
+        <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
+      </div>
+    </div>
+  </nav>
+  <button class="burger-btn" id="burgerBtn">☰</button>
+</header>
+
+
+<div class="ide-layout">
+  
+  <aside class="sidebar-left">
+    <div class="nav-header">Explorer</div>
+    
+    <div class="explorer" id="explorer">
+      </div>
+
+    <div class="user-stats">
+      <span id="xp-display">0 XP</span>
+      <span id="progress-display">0 / 8 gelöst</span>
+    </div>
+  </aside>
+
+  <main class="workspace-main">
+    
+    <div class="placeholder-screen" id="placeholder">
+      <div class="icon">⚡</div>
+      <div>Wähle eine Aufgabe im Explorer aus</div>
+    </div>
+
+    <div class="workspace-inner" id="workspace">
+      
+      <div class="task-header-area">
+        <div class="task-meta">
+          <h1 class="task-title" id="t-title">Task Title</h1>
+          <span class="badge" id="t-diff">EASY</span>
+          <span class="badge xp" id="t-xp">100 XP</span>
+        </div>
+        <div class="task-desc" id="t-desc">Task description goes here.</div>
+        <pre class="task-example" id="t-example">Example data</pre>
+      </div>
+
+      <div class="editor-wrapper">
+        <div class="editor-tabs">
+          <div class="editor-tab">
+            <span>📝</span> <span id="t-filename">script.js</span>
+          </div>
+        </div>
+        
+        <div class="editor-core">
+          <div class="editor-lines" id="editor-lines">1</div>
+          <textarea class="editor-textarea" id="editor-textarea" spellcheck="false" autocomplete="off"></textarea>
+        </div>
+        
+        <div class="editor-actions">
+          <button class="action-btn btn-ghost" id="btn-reset">↺ Reset</button>
+          <button class="action-btn btn-run" id="btn-run">▶ Run Code</button>
+          <button class="action-btn btn-next" id="btn-next">Next Challenge ➔</button>
+        </div>
+      </div>
+      
+    </div>
+  </main>
+
+  <aside class="sidebar-right">
+    <div class="console-header">
+      >_ Terminal Output
+    </div>
+    <div class="console-body" id="console">
+      <div class="log-line log-sys">> IDE initialized.</div>
+      <div class="log-line log-sys">> Workspace connected to main server.</div>
+      <div class="log-line log-sys">> Waiting for execution...</div>
+    </div>
+  </aside>
+
+</div>
+
+</body>
+</html>

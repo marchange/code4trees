@@ -1,0 +1,438 @@
+<?php
+// api/auth.php
+// Registrierung / Login / Logout / Session-Check für code4trees.
+// Nutzt die zentrale, sichere PDO-Verbindung aus db.php (keine zweite DB-Config!).
+
+declare(strict_types=1);
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+
+header('Content-Type: application/json');
+
+// Sessions müssen VOR jedem Output gestartet werden.
+session_start();
+
+require_once __DIR__ . '/db.php'; // stellt $pdo bereit (siehe db.php)
+require_once __DIR__ . '/rate_limit.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+$dotenv->load();
+
+function sendVerificationEmail(string $toEmail, string $username, string $token): void {
+    $resend = Resend::client($_ENV['RESEND_API_KEY']);
+
+    $verifyLink = "https://dev.code4trees.org/api/verify.php?token=" . urlencode($token);
+
+    $resend->emails->send([
+        'from' => 'code4trees <onboarding@dev.code4trees.org>',
+        'to' => [$toEmail],
+        'subject' => 'Bestätige deine E-Mail-Adresse — code4trees',
+        'html' => "
+            <p>Hallo {$username},</p>
+            <p>Danke für deine Registrierung bei code4trees! Bitte bestätige deine E-Mail-Adresse, um loszulegen:</p>
+            <p><a href=\"{$verifyLink}\">E-Mail-Adresse bestätigen</a></p>
+            <p>Dieser Link ist 24 Stunden gültig.</p>
+        "
+    ]);
+}
+
+function sendEmailChangeAlert(string $oldEmail, string $username, string $newEmail, string $cancelToken): void {
+    $resend = Resend::client($_ENV['RESEND_API_KEY']);
+
+    $cancelLink = "https://dev.code4trees.org/api/cancel_email_change.php?token=" . urlencode($cancelToken);
+
+    $resend->emails->send([
+        'from' => 'code4trees <onboarding@dev.code4trees.org>',
+        'to' => [$oldEmail],
+        'subject' => 'Sicherheitshinweis: E-Mail-Änderung angefordert — code4trees',
+        'html' => "
+            <p>Hallo {$username},</p>
+            <p>Für dein code4trees-Konto wurde eine Änderung der E-Mail-Adresse zu <strong>{$newEmail}</strong> angefordert.</p>
+            <p>Falls du das warst, musst du nichts weiter tun — sobald die neue Adresse bestätigt wird, ist die Änderung aktiv.</p>
+            <p><strong>Warst du das nicht?</strong> Klick hier, um die Änderung sofort zu stornieren:</p>
+            <p><a href=\"{$cancelLink}\">E-Mail-Änderung abbrechen</a></p>
+        "
+    ]);
+}
+
+
+$action = $_GET['action'] ?? '';
+
+function respond(int $httpCode, array $payload): void {
+    http_response_code($httpCode);
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function currentUserPublic(array $user): array {
+    // Nie password_hash oder andere sensible Felder nach außen geben.
+    return [
+        'id'            => (int)$user['id'],
+        'username'      => $user['username'],
+        'email'         => $user['email'],
+        'university_id' => (int)$user['university_id'],
+        'faculty_id'    => (int)$user['faculty_id'],
+    ];
+}
+
+switch ($action) {
+
+    // -----------------------------------------------------------------
+    // REGISTER
+    // -----------------------------------------------------------------
+    case 'register': {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+        }
+
+        if (!checkRateLimit($pdo, 'register', 5, 15)) {
+            respond(429, ['status' => 'error', 'message' => 'Zu viele Registrierungsversuche. Bitte in ein paar Minuten erneut versuchen.']);
+        }
+
+        // Honeypot: für Menschen unsichtbares Feld (per CSS versteckt). Echte Nutzer
+        // lassen es leer, Bots füllen es aus. Bot bekommt eine "erfolgreiche"
+        // Antwort, ohne dass tatsächlich etwas in der DB passiert.
+        $honeypot = trim((string)($_POST['website'] ?? ''));
+        if ($honeypot !== '') {
+            error_log('Honeypot getriggert bei Registrierung, IP: ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            respond(201, [
+                'status' => 'success',
+                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse über den Link, den wir dir geschickt haben.'
+            ]);
+        }
+
+        $username   = trim((string)($_POST['username'] ?? ''));
+        $email      = trim((string)($_POST['email'] ?? ''));
+        $password   = (string)($_POST['password'] ?? '');
+        $uniId      = (int)($_POST['university_id'] ?? 0);
+        $facultyId  = (int)($_POST['faculty_id'] ?? 0);
+    
+        if ($username === '' || $email === '' || $password === '' || $uniId <= 0 || $facultyId <= 0) {
+            respond(400, ['status' => 'error', 'message' => 'Bitte alle Pflichtfelder ausfüllen.']);
+        }
+        if (mb_strlen($username) < 3 || mb_strlen($username) > 50) {
+            respond(400, ['status' => 'error', 'message' => 'Nickname muss zwischen 3 und 50 Zeichen lang sein.']);
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            respond(400, ['status' => 'error', 'message' => 'Bitte eine gültige E-Mail-Adresse angeben.']);
+        }
+        if (strlen($password) < 8) {
+            respond(400, ['status' => 'error', 'message' => 'Passwort muss mindestens 8 Zeichen lang sein.']);
+        }
+    
+        $checkStmt = $pdo->prepare('SELECT id FROM faculties WHERE id = ? AND university_id = ?');
+        $checkStmt->execute([$facultyId, $uniId]);
+        if (!$checkStmt->fetch()) {
+            respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
+        }
+    
+        $passwordHash = password_hash($password, PASSWORD_ARGON2ID);
+    
+        // Verifizierungs-Token: kryptographisch zufällig, 24h gültig.
+        $verificationToken = bin2hex(random_bytes(32));
+        $tokenExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+    
+        try {
+            $stmt = $pdo->prepare(
+                'INSERT INTO users (university_id, faculty_id, username, email, password_hash, email_verified, verification_token, verification_token_expires)
+                 VALUES (?, ?, ?, ?, ?, 0, ?, ?)'
+            );
+            $stmt->execute([$uniId, $facultyId, $username, $email, $passwordHash, $verificationToken, $tokenExpires]);
+
+            http_response_code(201);
+            echo json_encode([
+                'status' => 'success',
+                'message' => 'Registrierung erfolgreich! Bitte bestätige deine E-Mail-Adresse.'
+            ], JSON_UNESCAPED_UNICODE);
+            
+            if (function_exists('fastcgi_finish_request')) {
+                fastcgi_finish_request();
+            }
+            
+            sendVerificationEmail($email, $username, $verificationToken);
+            exit;
+            
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                respond(409, ['status' => 'error', 'message' => 'Nickname oder E-Mail ist bereits vergeben.']);
+            }
+            error_log('auth.php register error: ' . $e->getMessage());
+            respond(500, ['status' => 'error', 'message' => 'Registrierung fehlgeschlagen. Bitte später erneut versuchen.']);
+        }
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // UPDATE PROFILE (Nickname, Fakultät sofort; E-Mail-Änderung erst nach
+    // Bestätigung aktiv — landet bis dahin in pending_email, nicht in email)
+    // -----------------------------------------------------------------
+    case 'update_profile': {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+        }
+        if (empty($_SESSION['user_id'])) {
+            respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+        }
+
+        $username  = trim((string)($_POST['username'] ?? ''));
+        $email     = trim((string)($_POST['email'] ?? ''));
+        $facultyId = (int)($_POST['faculty_id'] ?? 0);
+        // university_id kommt bewusst NICHT aus dem POST-Body -- die Uni ist nach
+        // der Registrierung fix und darf nicht per Formular-Manipulation geändert
+        // werden (sonst könnte man kurz vor Semesterende die Uni wechseln und
+        // bisherige Bäume auf eine andere Uni "ummünzen").
+        $currentUserStmt = $pdo->prepare('SELECT email, university_id FROM users WHERE id = ?');
+        $currentUserStmt->execute([$_SESSION['user_id']]);
+        $currentUserRow = $currentUserStmt->fetch();
+
+        if (!$currentUserRow) {
+            respond(404, ['status' => 'error', 'message' => 'Benutzer nicht gefunden.']);
+        }
+
+        $currentEmail = $currentUserRow['email'];
+        $uniId        = (int)$currentUserRow['university_id']; // fix, aus der DB, nicht verhandelbar
+
+        if ($username === '' || $email === '' || $facultyId <= 0) {
+            respond(400, ['status' => 'error', 'message' => 'Bitte alle Pflichtfelder ausfüllen.']);
+        }
+        if (mb_strlen($username) < 3 || mb_strlen($username) > 50) {
+            respond(400, ['status' => 'error', 'message' => 'Nickname muss zwischen 3 und 50 Zeichen lang sein.']);
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            respond(400, ['status' => 'error', 'message' => 'Bitte eine gültige E-Mail-Adresse angeben.']);
+        }
+
+        // Fakultät muss zur FESTEN (aus der DB gelesenen) Uni gehören.
+        $checkStmt = $pdo->prepare('SELECT id FROM faculties WHERE id = ? AND university_id = ?');
+        $checkStmt->execute([$facultyId, $uniId]);
+        if (!$checkStmt->fetch()) {
+            respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zu deiner Universität.']);
+        }
+
+        $emailChanged = strcasecmp((string)$currentEmail, $email) !== 0;
+
+        try {
+            if ($emailChanged) {
+                // Neue Adresse geht NUR in pending_email, die aktive email-Spalte
+                // bleibt unverändert, bis der Bestätigungslink geklickt wurde.
+                $verificationToken = bin2hex(random_bytes(32));
+                $tokenExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+                $stmt = $pdo->prepare(
+                    'UPDATE users
+                     SET username = ?, faculty_id = ?,
+                         pending_email = ?, verification_token = ?, verification_token_expires = ?
+                     WHERE id = ?'
+                );
+                $stmt->execute([
+                    $username, $facultyId,
+                    $email, $verificationToken, $tokenExpires,
+                    $_SESSION['user_id']
+                ]);
+            } else {
+                // Keine E-Mail-Änderung: normales Update, pending_email bleibt wie es ist.
+                $stmt = $pdo->prepare(
+                    'UPDATE users SET username = ?, faculty_id = ? WHERE id = ?'
+                );
+                $stmt->execute([$username, $facultyId, $_SESSION['user_id']]);
+            }
+
+            $_SESSION['username']      = $username;
+            $_SESSION['university_id'] = $uniId; // unverändert, kommt aus der DB
+            $_SESSION['faculty_id']    = $facultyId;
+
+            $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+            $stmt->execute([$_SESSION['user_id']]);
+            $updatedUser = $stmt->fetch();
+
+            $message = 'Profil erfolgreich aktualisiert!';
+            if ($emailChanged) {
+                $message = 'Profil aktualisiert! Deine bisherige E-Mail-Adresse bleibt aktiv, bis du die neue über den zugeschickten Link bestätigst.';
+
+                http_response_code(200);
+                echo json_encode([
+                    'status'  => 'success',
+                    'message' => $message,
+                    'user'    => currentUserPublic($updatedUser),
+                ], JSON_UNESCAPED_UNICODE);
+
+                if (function_exists('fastcgi_finish_request')) {
+                    fastcgi_finish_request();
+                }
+
+                sendVerificationEmail($email, $username, $verificationToken);
+                sendEmailChangeAlert($currentEmail, $username, $email, $verificationToken);
+                exit;
+            }
+
+            respond(200, [
+                'status'  => 'success',
+                'message' => $message,
+                'user'    => currentUserPublic($updatedUser),
+            ]);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                respond(409, ['status' => 'error', 'message' => 'Nickname oder E-Mail ist bereits vergeben.']);
+            }
+            error_log('auth.php update_profile error: ' . $e->getMessage());
+            respond(500, ['status' => 'error', 'message' => 'Profil konnte nicht aktualisiert werden.']);
+        }
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // UPDATE PASSWORD
+    // -----------------------------------------------------------------
+    case 'update_password': {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+        }
+        if (empty($_SESSION['user_id'])) {
+            respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+        }
+
+        $currentPassword = (string)($_POST['current_password'] ?? '');
+        $newPassword     = (string)($_POST['new_password'] ?? '');
+
+        if ($currentPassword === '' || $newPassword === '') {
+            respond(400, ['status' => 'error', 'message' => 'Bitte alle Felder ausfüllen.']);
+        }
+        if (strlen($newPassword) < 8) {
+            respond(400, ['status' => 'error', 'message' => 'Neues Passwort muss mindestens 8 Zeichen lang sein.']);
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+
+        if (!$user || !password_verify($currentPassword, $user['password_hash'])) {
+            respond(401, ['status' => 'error', 'message' => 'Aktuelles Passwort ist falsch.']);
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_ARGON2ID);
+
+        try {
+            $stmt = $pdo->prepare('UPDATE users SET password_hash = ? WHERE id = ?');
+            $stmt->execute([$newHash, $_SESSION['user_id']]);
+
+            respond(200, ['status' => 'success', 'message' => 'Passwort erfolgreich geändert!']);
+        } catch (PDOException $e) {
+            error_log('auth.php update_password error: ' . $e->getMessage());
+            respond(500, ['status' => 'error', 'message' => 'Passwort konnte nicht geändert werden.']);
+        }
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // DELETE ACCOUNT
+    // -----------------------------------------------------------------
+    case 'delete_account': {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+        }
+        if (empty($_SESSION['user_id'])) {
+            respond(401, ['status' => 'error', 'message' => 'Bitte zuerst einloggen.']);
+        }
+
+        try {
+            // tree_records.user_id hat ON DELETE SET NULL (laut Übergabe-Doku) —
+            // gepflanzte Bäume bleiben also erhalten, nur die Zuordnung zum User verschwindet.
+            $stmt = $pdo->prepare('DELETE FROM users WHERE id = ?');
+            $stmt->execute([$_SESSION['user_id']]);
+
+            $_SESSION = [];
+            session_destroy();
+
+            respond(200, ['status' => 'success', 'message' => 'Account erfolgreich gelöscht.']);
+        } catch (PDOException $e) {
+            error_log('auth.php delete_account error: ' . $e->getMessage());
+            respond(500, ['status' => 'error', 'message' => 'Account konnte nicht gelöscht werden.']);
+        }
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // LOGIN
+    // -----------------------------------------------------------------
+    case 'login': {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            respond(405, ['status' => 'error', 'message' => 'Method not allowed.']);
+        }
+
+        if (!checkRateLimit($pdo, 'login', 10, 15)) {
+            respond(429, ['status' => 'error', 'message' => 'Zu viele Login-Versuche. Bitte in ein paar Minuten erneut versuchen.']);
+        }
+
+        $email    = trim((string)($_POST['email'] ?? ''));
+        $password = (string)($_POST['password'] ?? '');
+    
+        if ($email === '' || $password === '') {
+            respond(400, ['status' => 'error', 'message' => 'E-Mail und Passwort sind erforderlich.']);
+        }
+    
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+    
+        if (!$user || !password_verify($password, $user['password_hash'])) {
+            respond(401, ['status' => 'error', 'message' => 'E-Mail oder Passwort ist falsch.']);
+        }
+    
+        if ((int)$user['email_verified'] !== 1) {
+            respond(403, ['status' => 'error', 'message' => 'Bitte bestätige zuerst deine E-Mail-Adresse. Schau in dein Postfach.']);
+        }
+    
+        session_regenerate_id(true);
+    
+        $_SESSION['user_id']       = (int)$user['id'];
+        $_SESSION['username']      = $user['username'];
+        $_SESSION['university_id'] = (int)$user['university_id'];
+        $_SESSION['faculty_id']    = (int)$user['faculty_id'];
+    
+        respond(200, [
+            'status'  => 'success',
+            'message' => 'Login erfolgreich!',
+            'user'    => currentUserPublic($user),
+        ]);
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // LOGOUT
+    // -----------------------------------------------------------------
+    case 'logout': {
+        $_SESSION = [];
+        session_destroy();
+        respond(200, ['status' => 'success', 'message' => 'Erfolgreich ausgeloggt.']);
+        break;
+    }
+
+    // -----------------------------------------------------------------
+    // ME (Session-Check, z.B. beim Seitenaufruf um Login-Status zu prüfen)
+    // -----------------------------------------------------------------
+    case 'me': {
+        if (empty($_SESSION['user_id'])) {
+            respond(200, ['status' => 'success', 'loggedIn' => false]);
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
+        $stmt->execute([$_SESSION['user_id']]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            // Session zeigt auf gelöschten User -> Session aufräumen.
+            $_SESSION = [];
+            session_destroy();
+            respond(200, ['status' => 'success', 'loggedIn' => false]);
+        }
+
+        respond(200, ['status' => 'success', 'loggedIn' => true, 'user' => currentUserPublic($user)]);
+        break;
+    }
+
+    default:
+        respond(400, ['status' => 'error', 'message' => 'Unbekannte Aktion.']);
+}

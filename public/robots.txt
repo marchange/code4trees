@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Link zur Sitemap, damit Suchmaschinen sie sofort finden
+Sitemap: https://code4trees.org/sitemap.xml
