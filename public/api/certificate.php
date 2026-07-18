@@ -1,17 +1,60 @@
 <?php
 
+declare(strict_types=1);
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 require __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/db.php'; // stellt $pdo bereit
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
+session_start();
 
-$name = htmlspecialchars($_GET['name'] ?? 'Anonymous Developer', ENT_QUOTES, 'UTF-8');
-$project = htmlspecialchars($_GET['project'] ?? 'Code Project', ENT_QUOTES, 'UTF-8');
-$id = htmlspecialchars($_GET['id'] ?? 'TREE-UNKNOWN', ENT_QUOTES, 'UTF-8');
+// --- Login-Pflicht -------------------------------------------------------
+// Vorher: name/project/id kamen ungeprüft aus der URL -- jeder, der eine
+// beliebige tree_id erriet oder kannte, konnte sich ein Zertifikat für
+// FREMDE Namen/Projekte generieren. Jetzt: nur der eingeloggte User selbst,
+// und nur für einen Baum, der wirklich ihm gehört.
+if (empty($_SESSION['user_id'])) {
+    http_response_code(401);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'Bitte zuerst einloggen, um dein Zertifikat herunterzuladen.';
+    exit;
+}
+
+$treeId = trim((string)($_GET['id'] ?? ''));
+if ($treeId === '') {
+    http_response_code(400);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'Keine Baum-ID angegeben.';
+    exit;
+}
+
+// tree_id muss existieren UND dem eingeloggten User gehören. So kann niemand
+// über eine fremde/erratene tree_id ein Zertifikat mit falschem Namen ziehen --
+// Name und Projekt kommen aus der DB, nicht mehr aus der URL.
+$stmt = $pdo->prepare(
+    'SELECT t.tree_id, t.project_name, u.username
+     FROM tree_records t
+     JOIN users u ON u.id = t.user_id
+     WHERE t.tree_id = ? AND t.user_id = ?'
+);
+$stmt->execute([$treeId, $_SESSION['user_id']]);
+$record = $stmt->fetch();
+
+if (!$record) {
+    http_response_code(404);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo 'Kein Zertifikat gefunden -- entweder existiert diese Baum-ID nicht, oder sie gehört nicht zu deinem Account.';
+    exit;
+}
+
+$name    = htmlspecialchars($record['username'], ENT_QUOTES, 'UTF-8');
+$project = htmlspecialchars($record['project_name'], ENT_QUOTES, 'UTF-8');
+$id      = htmlspecialchars($record['tree_id'], ENT_QUOTES, 'UTF-8');
 
 $date = date("d.m.Y");
 

@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (currentPage === 'profile') {
     const profileForm     = document.getElementById('profileForm');
     const passwordForm     = document.getElementById('passwordForm');
-    const profileUniversitySelect = document.getElementById('profileUniversity');
+    const profileUniversityDisplay = document.getElementById('profileUniversityDisplay');
     const profileFacultySelect    = document.getElementById('profileFaculty');
     const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
@@ -411,11 +411,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emailField)     emailField.value = user.email || '';
       if (treeCountField) treeCountField.textContent = user.tree_count ?? '0';
 
-      // Uni/Fakultät-Dropdowns mit denselben Stammdaten füllen wie bei der Registrierung.
-      if (profileUniversitySelect) {
+      // Uni ist fix (siehe auth.php: university_id wird serverseitig nicht mehr
+      // akzeptiert) -- daher nur Name anzeigen, kein Dropdown mehr befüllen.
+      // Fakultät bleibt änderbar, aber nur innerhalb dieser festen Uni.
+      if (profileUniversityDisplay || profileFacultySelect) {
         loadSetupDataForProfile().then(() => {
-          if (user.university_id) {
-            profileUniversitySelect.value = user.university_id;
+          if (user.university_id && setupDataCache) {
+            const uni = setupDataCache.universities.find(u => String(u.id) === String(user.university_id));
+            if (profileUniversityDisplay) {
+              profileUniversityDisplay.textContent = uni ? uni.name : 'Unbekannte Universität';
+            }
             populateFacultyDropdownGeneric(profileFacultySelect, user.university_id);
             if (profileFacultySelect && user.faculty_id) {
               profileFacultySelect.value = user.faculty_id;
@@ -425,7 +430,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Stammdaten laden (falls noch nicht über die Registrierung geladen) und Uni-Dropdown füllen.
+    // Stammdaten laden (falls noch nicht über die Registrierung geladen).
+    // Befüllt hier absichtlich KEIN Uni-Dropdown mehr -- das gibt es im Profil
+    // nicht mehr, nur noch die Read-Only-Anzeige oben in fillProfileForm().
     async function loadSetupDataForProfile() {
       if (!setupDataCache) {
         try {
@@ -434,17 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
           setupDataCache = { universities: data.universities || [], faculties: data.faculties || [] };
         } catch (error) {
           console.error('Stammdaten für Profil konnten nicht geladen werden:', error);
-          return;
         }
-      }
-      if (profileUniversitySelect) {
-        profileUniversitySelect.innerHTML = '<option value="" disabled>Universität wählen…</option>';
-        setupDataCache.universities.forEach(uni => {
-          const opt = document.createElement('option');
-          opt.value = uni.id;
-          opt.textContent = uni.name;
-          profileUniversitySelect.appendChild(opt);
-        });
       }
     }
 
@@ -463,11 +460,9 @@ document.addEventListener('DOMContentLoaded', () => {
       selectEl.disabled = filtered.length === 0;
     }
 
-    if (profileUniversitySelect) {
-      profileUniversitySelect.addEventListener('change', (e) => {
-        populateFacultyDropdownGeneric(profileFacultySelect, e.target.value);
-      });
-    }
+    // Kein change-Listener mehr für Uni nötig -- die Uni ist fix, es gibt
+    // kein Dropdown mehr dafür, nur noch die Fakultät ist innerhalb der
+    // festen Uni wählbar.
 
     // Stammdaten speichern (Nickname, E-Mail, Uni, Fakultät).
     if (profileForm) {

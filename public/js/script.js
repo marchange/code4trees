@@ -389,12 +389,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if(downloadCertBtn){
     downloadCertBtn.addEventListener('click', () => {
-      const name = (window.currentUser && window.currentUser.username) || "Developer";
-      const project = document.getElementById('project').value || "Code Project";
       const id = document.getElementById('treeIdValue').textContent;
 
       window.open(
-        `api/certificate.php?id=${encodeURIComponent(id)}&name=${encodeURIComponent(name)}&project=${encodeURIComponent(project)}`,
+        `api/certificate.php?id=${encodeURIComponent(id)}`,
         '_blank'
       );
     });

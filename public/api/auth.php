@@ -179,10 +179,23 @@ switch ($action) {
 
         $username  = trim((string)($_POST['username'] ?? ''));
         $email     = trim((string)($_POST['email'] ?? ''));
-        $uniId     = (int)($_POST['university_id'] ?? 0);
         $facultyId = (int)($_POST['faculty_id'] ?? 0);
+        // university_id kommt bewusst NICHT aus dem POST-Body -- die Uni ist nach
+        // der Registrierung fix und darf nicht per Formular-Manipulation geändert
+        // werden (sonst könnte man kurz vor Semesterende die Uni wechseln und
+        // bisherige Bäume auf eine andere Uni "ummünzen").
+        $currentUserStmt = $pdo->prepare('SELECT email, university_id FROM users WHERE id = ?');
+        $currentUserStmt->execute([$_SESSION['user_id']]);
+        $currentUserRow = $currentUserStmt->fetch();
 
-        if ($username === '' || $email === '' || $uniId <= 0 || $facultyId <= 0) {
+        if (!$currentUserRow) {
+            respond(404, ['status' => 'error', 'message' => 'Benutzer nicht gefunden.']);
+        }
+
+        $currentEmail = $currentUserRow['email'];
+        $uniId        = (int)$currentUserRow['university_id']; // fix, aus der DB, nicht verhandelbar
+
+        if ($username === '' || $email === '' || $facultyId <= 0) {
             respond(400, ['status' => 'error', 'message' => 'Bitte alle Pflichtfelder ausfüllen.']);
         }
         if (mb_strlen($username) < 3 || mb_strlen($username) > 50) {
@@ -192,17 +205,12 @@ switch ($action) {
             respond(400, ['status' => 'error', 'message' => 'Bitte eine gültige E-Mail-Adresse angeben.']);
         }
 
+        // Fakultät muss zur FESTEN (aus der DB gelesenen) Uni gehören.
         $checkStmt = $pdo->prepare('SELECT id FROM faculties WHERE id = ? AND university_id = ?');
         $checkStmt->execute([$facultyId, $uniId]);
         if (!$checkStmt->fetch()) {
-            respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zur gewählten Universität.']);
+            respond(400, ['status' => 'error', 'message' => 'Diese Fakultät gehört nicht zu deiner Universität.']);
         }
-
-        // Aktuelle, BESTÄTIGTE E-Mail aus der DB holen — nicht die Formular-Eingabe,
-        // sonst könnte man mit einem zweiten Klick den Vergleich austricksen.
-        $currentStmt = $pdo->prepare('SELECT email FROM users WHERE id = ?');
-        $currentStmt->execute([$_SESSION['user_id']]);
-        $currentEmail = $currentStmt->fetchColumn();
 
         $emailChanged = strcasecmp((string)$currentEmail, $email) !== 0;
 
@@ -215,25 +223,25 @@ switch ($action) {
 
                 $stmt = $pdo->prepare(
                     'UPDATE users
-                     SET username = ?, university_id = ?, faculty_id = ?,
+                     SET username = ?, faculty_id = ?,
                          pending_email = ?, verification_token = ?, verification_token_expires = ?
                      WHERE id = ?'
                 );
                 $stmt->execute([
-                    $username, $uniId, $facultyId,
+                    $username, $facultyId,
                     $email, $verificationToken, $tokenExpires,
                     $_SESSION['user_id']
                 ]);
             } else {
                 // Keine E-Mail-Änderung: normales Update, pending_email bleibt wie es ist.
                 $stmt = $pdo->prepare(
-                    'UPDATE users SET username = ?, university_id = ?, faculty_id = ? WHERE id = ?'
+                    'UPDATE users SET username = ?, faculty_id = ? WHERE id = ?'
                 );
-                $stmt->execute([$username, $uniId, $facultyId, $_SESSION['user_id']]);
+                $stmt->execute([$username, $facultyId, $_SESSION['user_id']]);
             }
 
             $_SESSION['username']      = $username;
-            $_SESSION['university_id'] = $uniId;
+            $_SESSION['university_id'] = $uniId; // unverändert, kommt aus der DB
             $_SESSION['faculty_id']    = $facultyId;
 
             $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?');
