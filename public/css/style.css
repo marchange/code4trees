@@ -1041,15 +1041,6 @@ footer {
     justify-content: center;
   }
 }
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100vw;
-    background-color: #080c08; 
-    color: #DFDFDF;
-    display: flex;
-    flex-direction: column;
-  }
 
   :root {
     --ide-border: rgba(127, 176, 105, 0.15);
