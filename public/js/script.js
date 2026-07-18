@@ -6,7 +6,6 @@ const LEADERBOARD_API_PATH = 'api/leaderboard.php';
 document.addEventListener("DOMContentLoaded", () => {
 
   const FETCH_INTERVAL_MS = 10000; // Update counter every 10 seconds
-  const RANDOM_ADD_INTERVAL_MS = 15000; // Attempt a random add every 15 seconds
   const LEADERBOARD_INTERVAL_MS = 30000; // Refresh leaderboard every 30 seconds
 
   const treeCountEl = document.getElementById('treeCount');
@@ -163,16 +162,10 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchLiveTreeCount();
   setInterval(fetchLiveTreeCount, FETCH_INTERVAL_MS);
 
-  // --- RANDOM BACKGROUND INCREMENTS ---
-  setInterval(async () => {
-      if (Math.random() < 0.2) return;
-      const randomTrees = Math.floor(Math.random() * 7) + 1;
-      try {
-          await fetch(`${API_PATH}?add=${randomTrees}`);
-      } catch (e) {
-          console.error("Random add failed", e);
-      }
-  }, RANDOM_ADD_INTERVAL_MS);
+  // Hinweis: Die früheren "Random Background Increments" (?add=) wurden entfernt.
+  // Der Zähler zeigt jetzt ausschließlich echte tree_records-Einträge aus der DB —
+  // eine NGO, die reale Baumpflanzungen verspricht, kann die Zahl nicht künstlich
+  // hochzählen, auch nicht "nur kosmetisch". api.php akzeptiert ?add= nicht mehr.
 
   // --- Floating Code Particles ---
   function generateAmbientCode() {
@@ -361,7 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if (successState) successState.style.display = "block";
 
           fileInput.disabled = true;
-          if (document.getElementById('name')) document.getElementById('name').disabled = true;
           if (document.getElementById('project')) document.getElementById('project').disabled = true;
 
         } else {
@@ -397,7 +389,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if(downloadCertBtn){
     downloadCertBtn.addEventListener('click', () => {
-      const name = document.getElementById('name').value || "Developer";
+      const name = (window.currentUser && window.currentUser.username) || "Developer";
       const project = document.getElementById('project').value || "Code Project";
       const id = document.getElementById('treeIdValue').textContent;
 
@@ -417,7 +409,25 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- LIVE-LEADERBOARD ("Der Semester-Fight")
   // =====================================================================
 
-  const leaderboardListEl = document.getElementById('leaderboardList');
+  const leaderboardListEl     = document.getElementById('leaderboardList');
+  const userLeaderboardListEl = document.getElementById('userLeaderboardList');
+  const tabUniBtn  = document.getElementById('tabUni');
+  const tabUserBtn = document.getElementById('tabUser');
+
+  function renderRow(rank, primaryLabel, secondaryLabel, treeCount) {
+    let medal = '';
+    if (rank === 1) medal = '🥇';
+    else if (rank === 2) medal = '🥈';
+    else if (rank === 3) medal = '🥉';
+
+    return `
+      <li class="leaderboard-row">
+        <span class="lb-rank">${medal || `#${rank}`}</span>
+        <span class="lb-name">${primaryLabel}${secondaryLabel ? `<span class="lb-uni">${secondaryLabel}</span>` : ''}</span>
+        <span class="lb-count">${Number(treeCount ?? 0).toLocaleString('de-AT')} 🌳</span>
+      </li>
+    `;
+  }
 
   function renderLeaderboard(entries) {
     if (!leaderboardListEl) return;
@@ -428,24 +438,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     leaderboardListEl.innerHTML = entries.map((entry, index) => {
-      const rank = index + 1;
       const uniName = entry.university_name || entry.name || 'Unbekannte Uni';
-      const treeCount = Number(entry.trees ?? entry.tree_count ?? 0).toLocaleString('de-AT');
-
-      let medal = '';
-      if (rank === 1) medal = '🥇';
-      else if (rank === 2) medal = '🥈';
-      else if (rank === 3) medal = '🥉';
-
-      return `
-        <li class="leaderboard-row">
-          <span class="lb-rank">${medal || `#${rank}`}</span>
-          <span class="lb-name">${uniName}</span>
-          <span class="lb-count">${treeCount} 🌳</span>
-        </li>
-      `;
+      return renderRow(index + 1, uniName, '', entry.trees ?? entry.tree_count);
     }).join('');
   }
+
+  function renderUserLeaderboard(entries) {
+    if (!userLeaderboardListEl) return;
+
+    if (!entries || entries.length === 0) {
+      userLeaderboardListEl.innerHTML = '<li class="leaderboard-empty">Noch keine Einreichungen — sei die erste Person!</li>';
+      return;
+    }
+
+    userLeaderboardListEl.innerHTML = entries.map((entry, index) => {
+      return renderRow(index + 1, entry.username || 'Unbekannt', entry.university_name || '', entry.tree_count);
+    }).join('');
+  }
+
+  function switchLeaderboardTab(target) {
+    const showUser = target === 'user';
+    if (leaderboardListEl) leaderboardListEl.hidden = showUser;
+    if (userLeaderboardListEl) userLeaderboardListEl.hidden = !showUser;
+    if (tabUniBtn) {
+      tabUniBtn.classList.toggle('is-active', !showUser);
+      tabUniBtn.setAttribute('aria-selected', String(!showUser));
+    }
+    if (tabUserBtn) {
+      tabUserBtn.classList.toggle('is-active', showUser);
+      tabUserBtn.setAttribute('aria-selected', String(showUser));
+    }
+  }
+
+  if (tabUniBtn)  tabUniBtn.addEventListener('click', () => switchLeaderboardTab('uni'));
+  if (tabUserBtn) tabUserBtn.addEventListener('click', () => switchLeaderboardTab('user'));
 
   async function fetchLeaderboard() {
     if (!leaderboardListEl) return; // Sektion existiert (noch) nicht im DOM
@@ -455,11 +481,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();
-      const entries = data.leaderboard || data.universities || [];
-      renderLeaderboard(entries);
+      renderLeaderboard(data.leaderboard || data.universities || []);
+      renderUserLeaderboard(data.users || []);
     } catch (error) {
       console.error('Leaderboard-Fehler:', error);
       leaderboardListEl.innerHTML = '<li class="leaderboard-empty">Leaderboard momentan nicht verfügbar.</li>';
+      if (userLeaderboardListEl) userLeaderboardListEl.innerHTML = '<li class="leaderboard-empty">Leaderboard momentan nicht verfügbar.</li>';
     }
   }
 

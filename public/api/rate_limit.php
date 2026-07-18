@@ -16,17 +16,15 @@
 declare(strict_types=1);
 
 /**
- * Prüft und zählt Versuche für eine Aktion (z.B. "register", "login") pro IP,
+ * Prüft und zählt Versuche für eine Aktion (z.B. "register", "login", "plant") pro IP,
  * innerhalb eines festen Zeitfensters.
  *
  * @return bool true = Request erlaubt, false = Limit erreicht (429 zurückgeben)
  */
 function checkRateLimit(PDO $pdo, string $action, int $maxAttempts, int $windowMinutes): bool {
     $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-    // IP wird nur gehasht gespeichert, nicht im Klartext.
     $ipHash = hash('sha256', $ip);
 
-    // Zeitfenster auf feste Blöcke runden (z.B. alle 15 Minuten ein neues Fenster).
     $windowSeconds = $windowMinutes * 60;
     $windowStart = date('Y-m-d H:i:s', (int)(floor(time() / $windowSeconds) * $windowSeconds));
 
@@ -46,9 +44,6 @@ function checkRateLimit(PDO $pdo, string $action, int $maxAttempts, int $windowM
 
         return $count <= $maxAttempts;
     } catch (PDOException $e) {
-        // Falls die Tabelle (noch) nicht existiert oder die DB kurz zickt:
-        // NICHT blockieren, nur loggen. Lieber ein Request zu viel durch,
-        // als echte Nutzer auszusperren, weil die Migration fehlt.
         error_log('Rate-Limit-Check fehlgeschlagen: ' . $e->getMessage());
         return true;
     }

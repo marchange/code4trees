@@ -107,11 +107,30 @@
 
   <section id="leaderboard" aria-labelledby="leaderboardHeading">
     <h2 id="leaderboardHeading">Der Semester-Fight 🏆</h2>
-    <p class="section-intro">Welche Uni pflanzt gerade den größten Wald? Das Leaderboard aktualisiert sich live alle 30 Sekunden.</p>
-    <ul class="leaderboard-card" id="leaderboardList">
+    <p class="section-intro">Welche Uni pflanzt gerade den größten Wald — und wer sind die fleißigsten Einzelkämpfer? Aktualisiert sich live alle 30 Sekunden.</p>
+
+    <div class="leaderboard-tabs" role="tablist" aria-label="Leaderboard-Ansicht">
+      <button type="button" class="leaderboard-tab is-active" id="tabUni" role="tab" aria-selected="true" aria-controls="leaderboardList">🏫 Unis</button>
+      <button type="button" class="leaderboard-tab" id="tabUser" role="tab" aria-selected="false" aria-controls="userLeaderboardList">🌱 Studierende</button>
+    </div>
+
+    <ul class="leaderboard-card" id="leaderboardList" role="tabpanel">
+      <li class="leaderboard-empty">Lade Rangliste…</li>
+    </ul>
+    <ul class="leaderboard-card" id="userLeaderboardList" role="tabpanel" hidden>
       <li class="leaderboard-empty">Lade Rangliste…</li>
     </ul>
   </section>
+
+  <style>
+    .leaderboard-tabs{ display:flex; gap:8px; margin-bottom:14px; }
+    .leaderboard-tab{
+      background:none; border:1px solid rgba(127,176,105,0.35); color:#fff;
+      font:inherit; font-size:0.9rem; padding:8px 16px; border-radius:999px; cursor:pointer;
+    }
+    .leaderboard-tab.is-active{ background:var(--leaf,#7FB069); color:var(--pine-950,#0f1f16); border-color:transparent; font-weight:600; }
+    .lb-uni{ font-size:0.78rem; opacity:0.7; margin-left:6px; }
+  </style>
 
   <section id="ablauf">
     <h2>Lernen mit gutem Gewissen</h2>
@@ -162,7 +181,6 @@
         <p style="font-size: 0.9rem; margin-bottom: 0;">Teile diese ID in den sozialen Medien, um deinen Beitrag zum Klimaschutz zu zeigen!</p>
       </div>
 
-      <!-- DIE SUBMIT INPUT BOXEN (HIER WAR DER FEHLER) -->
       <div class="form-grid">
         <div class="field">
           <label for="name">Dein Vorname (oder Nickname)</label>
@@ -196,18 +214,30 @@
     </form>
   </section>
 </main>
-<footer>
-  <div class="footer-inner">
-    <div class="footer-left">
-      <span>© 2026 code4trees.org – Gamified Education.</span>
-      <a href="./impressum.html">Impressum</a>
-      <span class="separator">|</span>
-      <a href="./datenschutz.html">Datenschutz</a>
+<!-- AUTH MODAL: Login / Registrierung -->
+<div class="auth-modal" id="authModal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle" aria-hidden="true" style="display:none;">
+  <div class="auth-modal-card">
+    <button type="button" class="auth-modal-close" id="closeAuthBtn" aria-label="Schließen">&times;</button>
+
+    <div id="authMessage" class="auth-message" style="display:none;"></div>
+
+    <!-- LOGIN STATE -->
+    <div id="loginState">
+      <h3 id="authModalTitle">Einloggen</h3>
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginEmail">E-Mail</label>
+          <input type="email" id="loginEmail" name="email" required placeholder="du@uni.ac.at">
+        </div>
+        <div class="field">
+          <label for="loginPassword">Passwort</label>
+          <input type="password" id="loginPassword" name="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Einloggen</button>
+      </form>
+      <p class="auth-switch">Noch kein Konto? <a href="registrieren.html" id="toRegisterLink">Jetzt registrieren</a></p>
     </div>
-    <div class="footer-right">
-      <span>Made by Students, for Students 💚</span>
-    </div>
-  </div>
-</footer>
+</div>
+
 </body>
 </html>
