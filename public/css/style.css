@@ -27,6 +27,10 @@ html {
 }
 
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: auto;
   background: var(--pine-950);
   color: var(--paper);
   font-family: var(--sans);
@@ -35,6 +39,11 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   position: relative;
+}
+
+main {
+  flex: 1 0 auto; 
+  display: block
 }
 
 ::selection { 
@@ -992,6 +1001,8 @@ footer {
   background: var(--pine-950);
   padding: 30px 24px;
   margin-top: 60px;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .footer-inner {
@@ -1795,5 +1806,86 @@ footer {
   }
   .form-card.auth-card {
     margin: 0 auto;
+  }
+}
+
+/* ---------- Mobile Burger Menu ---------- */
+.burger-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--leaf);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+@media (max-width: 950px) {
+  header {
+    flex-wrap: wrap; /* Allows the menu to drop below the logo */
+  }
+  
+  .burger-btn {
+    display: block;
+  }
+
+  .nav {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+    max-height: 0; /* Hidden by default */
+    transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
+    gap: 0;
+  }
+
+  /* This class is toggled by your existing JavaScript */
+  .nav.open {
+    max-height: 500px; /* Expands downwards smoothly */
+    padding-top: 15px;
+  }
+
+  .nav a, .auth-nav-btn {
+    width: 100%;
+    text-align: left;
+    padding: 15px 10px;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(127, 176, 105, 0.2);
+  }
+
+  .nav a.active {
+    background: rgba(127, 176, 105, 0.1);
+    color: var(--leaf);
+    box-shadow: none;
+  }
+
+  /* Overrides for the specific 'Einreichen' button */
+  .nav a[href="#einreichen"] {
+    border: none;
+    border-bottom: 1px solid rgba(127, 176, 105, 0.2);
+    color: var(--leaf);
+  }
+
+  .auth-nav-wrapper {
+    width: 100%;
+  }
+
+  .auth-nav-btn {
+    border: none;
+    color: var(--sun);
+  }
+  
+  /* Make the dropdown flat and inline on mobile */
+  .auth-dropdown {
+    position: static;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    box-shadow: none;
+    margin-top: 0;
+  }
+  
+  .auth-dropdown-item {
+    padding: 12px 20px;
   }
 }

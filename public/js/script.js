@@ -187,6 +187,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener('pageshow', generateAmbientCode);
 
+// --- Mobile Burger Menu Logic ---
+  const burgerBtn = document.getElementById('burgerBtn');
+  const navMenu = document.querySelector('.nav');
+
+  if (burgerBtn && navMenu) {
+    burgerBtn.addEventListener('click', () => {
+      navMenu.classList.toggle('open');
+      burgerBtn.textContent = navMenu.classList.contains('open') ? '✕' : '☰';
+    });
+
+    //Close menu when clicking a link
+    const navLinks = navMenu.querySelectorAll('a:not(.auth-dropdown-item)');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('open');
+        burgerBtn.textContent = '☰';
+      });
+    });
+  }
+
   // --- Typewriter Effect für H1 ---
   function typeWriter() {
     const h1 = document.getElementById('typewriter');

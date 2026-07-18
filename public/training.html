@@ -32,8 +32,18 @@
     <a href="index.html">Dashboard</a>
     <a href="training.html" class="active">Code-Arena</a>
     <a href="transparenz.html">Transparenz</a>
-    <a href="#einreichen">Einreichen</a>
+    <a href="index.html#einreichen">Einreichen</a>
+    <div class="auth-nav-wrapper" id="authNavWrapper">
+      <a href="registrieren.html" id="authNavBtn" class="auth-nav-btn">
+        Login / Registrieren
+    </a>
+      <div class="auth-dropdown" id="authDropdown" hidden>
+        <a href="profil.html" class="auth-dropdown-item">👤 Mein Profil</a>
+        <button type="button" id="logoutBtn" class="auth-dropdown-item auth-dropdown-item--danger">🚪 Logout</button>
+      </div>
+    </div>
   </nav>
+  <button class="burger-btn" id="burgerBtn">☰</button>
 </header>
 
 
