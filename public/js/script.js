@@ -315,6 +315,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const successState = document.getElementById('successState');
   const treeIdValue = document.getElementById('treeIdValue');
   const copyTreeIdBtn = document.getElementById('copyTreeIdBtn');
+  const cancelUploadBtn = document.getElementById('cancelUploadBtn');
+  let uploadController = null;
 
   function fireTreeConfetti() {
     const duration = 2500;
@@ -336,6 +338,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const icon = submitBtn.querySelector('.btn-icon');
       const text = submitBtn.querySelector('.btn-text');
 
+      uploadController = new AbortController();
+      if (cancelUploadBtn) cancelUploadBtn.hidden = false;
+
+      submitBtn.disabled = true;
+      submitBtn.classList.add('is-watering');
+
       submitBtn.disabled = true;
       submitBtn.classList.add('is-watering');
       if (icon) icon.textContent = "💧";
@@ -350,7 +358,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const formData = new FormData(form);
 
       try {
-        const response = await fetch(API_PATH, { method: 'POST', body: formData });
+        const response = await fetch(API_PATH, { method: 'POST', body: formData, signal: uploadController.signal });
         const data = await response.json();
 
         if (data.status === 'success' || data.success) {
@@ -384,11 +392,21 @@ document.addEventListener("DOMContentLoaded", () => {
           if (text) text.textContent = "Erneut versuchen";
         }
       } catch (err) {
-        console.error(err);
+        if (err.name === 'AbortError') {
+          if (reviewConsole) reviewConsole.innerHTML += `<br><p class="sys">> Upload abgebrochen.</p>`;
+        } else {
+          console.error(err);
+        }
         submitBtn.disabled = false;
         submitBtn.classList.remove('is-watering');
+      } finally {
+        if (cancelUploadBtn) cancelUploadBtn.hidden = true;
       }
     });
+  }
+
+  if (cancelUploadBtn) {
+    cancelUploadBtn.addEventListener('click', () => uploadController?.abort());
   }
 
   // --- Clipboard Copy ---

@@ -143,6 +143,18 @@ if (!$hasValidProjectFile) {
     ]);
 }
 
+// Duplicate check, same hash same project, no new tree
+$contentHash = hash_file('sha256', $uploadedFile['tmp_name']);
+
+$dupStmt = $pdo->prepare('SELECT tree_id FROM tree_records WHERE user_id = ? AND content_hash = ?');
+$dupStmt->execute([$userId, $contentHash]);
+if ($existingTreeId = $dupStmt->fetchColumn()) {
+    respond(409, [
+        'status'  => 'error',
+        'message' => 'Dieses Projekt wurde bereits eingereicht (Baum-ID: ' . $existingTreeId . ').'
+    ]);
+}
+
 // --- Baum-ID generieren & Datensatz anlegen ---
 
 $maxAttempts = 3;
@@ -153,10 +165,10 @@ for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
 
     try {
         $stmt = $pdo->prepare(
-            'INSERT INTO tree_records (user_id, university_id, faculty_id, tree_id, project_name)
-             VALUES (?, ?, ?, ?, ?)'
+            'INSERT INTO tree_records (user_id, university_id, faculty_id, tree_id, project_name, content_hash)
+             VALUES (?, ?, ?, ?, ?, ?)'
         );
-        $stmt->execute([$userId, $universityId, $facultyId, $candidateId, $projectName]);
+        $stmt->execute([$userId, $universityId, $facultyId, $candidateId, $projectName, $contentHash]);
         $treeId = $candidateId;
         break;
     } catch (PDOException $e) {
