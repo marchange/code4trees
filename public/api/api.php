@@ -61,6 +61,7 @@ if (empty($_SESSION['user_id'])) {
     respond(401, ['status' => 'error', 'message' => 'Bitte logge dich ein, um ein Projekt einzureichen.']);
 }
 
+sleep(5);
 // Zusätzliches IP-basiertes Rate-Limit oben drauf (gegen kompromittierte
 // oder mehrfach registrierte Accounts vom selben Absender).
 if (!checkRateLimit($pdo, 'plant', 15, 15)) {
